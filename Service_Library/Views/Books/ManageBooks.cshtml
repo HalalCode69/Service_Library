@@ -1,0 +1,24 @@
+﻿@model IEnumerable<Service_Library.Models.Book>
+@{
+    ViewBag.Title = "Library";
+}
+
+<h2 class="text-light mb-4">Library</h2>
+<input type="text" id="searchBox" placeholder="Search books..." class="form-control mb-4" />
+
+<div class="book-container">
+    @foreach (var book in Model)
+    {
+        <div class="book-card">
+            <a href="@Url.Action("Details", "Books", new { id = book.BookId })">
+                <img src="~/images/@book.CoverImage" alt="@book.Title" class="book-cover" />
+                <div class="book-info">
+                    <span class="book-category">@book.Category</span>
+                    <h5 class="book-title">@book.Title</h5>
+                    <p class="book-author">@book.Author</p
+                    <p class="book-author">@book.Author</p>
+                </div>
+            </a>
+        </div>
+    }
+</div>

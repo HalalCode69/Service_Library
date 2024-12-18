@@ -1,0 +1,133 @@
+﻿<div class="book-container">
+    @foreach (var book in Model)
+    {
+        <div class="book-card" data-bs-toggle="modal" data-bs-target="#bookModal-@book.BookId">
+            @if (book.CoverImage != null)
+            {
+                <img src="data:image/png;base64,@(Convert.ToBase64String(book.CoverImage))"
+                alt="Cover Image" class="book-cover" />
+            }
+
+            <!-- Book Info -->
+            <div class="book-info">
+                <h6 class="book-title">@book.Title</h6>
+                <p class="book-author">@book.Author</p>
+
+                <!-- Discounted Price Logic -->
+                @if (book.DiscountPrice > 0 && book.DiscountEndDate >= DateTime.Now)
+                {
+                    <p class="book-price">
+                        <span class="strike-price">$@book.PreviousBuyPrice.ToString("F2")</span>
+                        <span class="discount-price">$@book.DiscountPrice.ToString("F2")</span>
+                    </p>
+                    <p style="font-size: 0.8rem; color: gray;">
+                        Discount ends on: @book.DiscountEndDate.ToShortDateString()
+                    </p>
+                }
+                else
+                {
+                    <p class="book-price">$@book.BuyPrice.ToString("F2")</p>
+                }
+
+                <!-- Waiting List Count -->
+                <p class="text-info">Waiting List: @book.WaitingListCount users</p>
+
+                <!-- User Waiting List Information -->
+                @if (book.IsUserOnWaitingList)
+                {
+                    <p class="text-warning">You are in position: @book.UserWaitingPosition</p>
+                    <form method="post" asp-controller="Books" asp-action="LeaveWaitingList">
+                        <input type="hidden" name="bookId" value="@book.BookId" />
+                        <button type="submit" class="btn btn-danger btn-sm">Leave Waiting List</button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <!-- Modal for Book Details -->
+        <div class="modal fade" id="bookModal-@book.BookId" tabindex="-1" aria-labelledby="bookModalLabel-@book.BookId" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="bookModalLabel-@book.BookId">@book.Title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="book-details">
+                            <p><strong>Author:</strong> @book.Author</p>
+                            <p><strong>Format:</strong> @book.Format</p>
+                            <p><strong>Category:</strong> @book.Category</p>
+                            <p><strong>Borrow Price:</strong> $@book.BorrowPrice.ToString("F2") USD</p>
+                            <p><strong>Buy Price:</strong> $@book.BuyPrice.ToString("F2") USD</p>
+
+                            <!-- Display Borrow Timer -->
+                            @if (book.IsOwnedByCurrentUser)
+                            {
+                                <!-- User owns the book -->
+                                <p class="text-success"><strong>You own this book!</strong></p>
+                            }
+                            else if (book.IsAlreadyBorrowed)
+                            {
+                                <!-- User has already borrowed the book -->
+                                <p class="text-success"><strong>Borrowed:</strong> @book.RemainingBorrowTime</p>
+                            }
+                            else
+                            {
+                                @if (!book.IsBorrowable)
+                                {
+                                    <!-- Book is not borrowable -->
+                                    <p class="text-danger"><strong>Not Available to Borrow</strong></p>
+                                }
+                                else if (book.AvailableCopies > 0)
+                                {
+                                    <!-- Borrow button -->
+                                    <form method="post" asp-controller="Books" asp-action="BorrowBook">
+                                        <input type="hidden" name="bookId" value="@book.BookId" />
+                                        <button type="submit" class="btn btn-success btn-sm">Borrow</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <!-- Show waitlist count only if user is NOT in the waitlist -->
+                                    @if (!book.IsUserOnWaitingList)
+                                    {
+                                        <p class="text-info">Users in waitlist: @book.WaitingListCount</p>
+                                        <form method="post" asp-controller="Books" asp-action="JoinWaitingList">
+                                            <input type="hidden" name="bookId" value="@book.BookId" />
+                                            <button type="submit" class="btn btn-warning btn-sm">Join Waiting List</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <!-- Show user's position in the waitlist -->
+                                        <p class="text-warning">You are in position: @book.UserWaitingPosition</p>
+                                        <form method="post" asp-controller="Books" asp-action="LeaveWaitingList">
+                                            <input type="hidden" name="bookId" value="@book.BookId" />
+                                            <button type="submit" class="btn btn-danger btn-sm">Leave Waiting List</button>
+                                        </form>
+                                    }
+                                }
+
+                                <!-- Always show the buy button -->
+                                <form method="post" asp-controller="Books" asp-action="BuyBook">
+                                    <input type="hidden" name="id" value="@book.BookId" />
+                                    <button type="submit" class="btn btn-primary btn-sm mt-2">Buy Now</button>
+                                </form>
+                            }
+
+
+                        </div>
+                        @if (book.CoverImage != null)
+                        {
+                            <img src="data:image/png;base64,@(Convert.ToBase64String(book.CoverImage))"
+                                 alt="Book Image" class="img-fluid" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+    }
+</div>

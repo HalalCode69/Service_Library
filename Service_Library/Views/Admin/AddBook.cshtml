@@ -1,0 +1,68 @@
+﻿@model Service_Library.Models.Book
+
+@{
+    ViewBag.Title = "Add Book";
+}
+
+<h2>Add New Book</h2>
+<form method="post" enctype="multipart/form-data">
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+    <div class="form-group">
+        <label for="Title">Title</label>
+        <input type="text" class="form-control" id="Title" name="Title" required />
+    </div>
+    <div class="form-group">
+        <label for="Author">Author</label>
+        <input type="text" class="form-control" id="Author" name="Author" required />
+    </div>
+    <div class="form-group">
+        <label for="Format">File Format</label>
+        <select class="form-control" id="Format" name="Format" required>
+            <option value="">-- Select Format --</option>
+            <option value="PDF">PDF</option>
+            <option value="EPUB">EPUB</option>
+            <option value="MOBI">MOBI</option>
+            <option value="FB2">FB2</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="BorrowPrice">Borrow Price</label>
+        <input type="number" class="form-control" id="BorrowPrice" name="BorrowPrice" step="0.01" min="0" required />
+    </div>
+    <div class="form-group">
+        <label for="BuyPrice">Buy Price</label>
+        <input type="number" class="form-control" id="BuyPrice" name="BuyPrice" step="0.01" min="0" required />
+    </div>
+    <div class="form-group">
+        <label for="AvailableCopies">Available Copies</label>
+        <input type="number" class="form-control" id="AvailableCopies" name="AvailableCopies" min="0" required />
+    </div>
+    <div class="form-group">
+        <label for="Category">Category</label>
+        <select class="form-control" asp-for="Category" asp-items="@(new SelectList(ViewBag.Categories))">
+            <option value="">-- Select Category --</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="IsBorrowable">Is Borrowable?</label>
+        <select class="form-control" id="IsBorrowable" name="IsBorrowable" required>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="CoverImage">Cover Image</label>
+        <input type="file" class="form-control-file" id="CoverImage" name="CoverImage" accept="image/*" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

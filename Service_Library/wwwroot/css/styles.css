@@ -1,0 +1,29 @@
+body {
+	background: linear-gradient(-45deg, #ffb3ba 0%, /* Pastel red */
+	#ffdfba 12%, /* Pastel orange */
+	#ffffba 25%, /* Pastel yellow */
+	#bae1ff 37%, /* Pastel light blue */
+	#a4c3d2 50%, /* Pastel blue */
+	#d4a4c3 62%, /* Pastel pink */
+	#c7f0db 75%, /* Pastel mint green */
+	#f7d1ba 87%, /* Pastel peach */
+	#e2e1f7 100% /* Pastel lavender */
+	);
+	background-size: 800% 800%;
+	animation: gradient 40s ease infinite;
+	height: 100vh;
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+
+	50% {
+		background-position: 100% 50%;
+	}
+
+	100% {
+		background-position: 0% 50%;
+	}
+}

@@ -1,0 +1,12 @@
+﻿@{
+    ViewBag.Title = "Upload Website Icon";
+}
+
+<h2>Upload Website Icon</h2>
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="iconFile">Choose Icon (JPG/PNG):</label>
+        <input type="file" class="form-control-file" id="iconFile" name="iconFile" accept="image/*" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Upload Icon</button>
+</form>

@@ -1,0 +1,16 @@
+﻿@model Service_Library.Models.Book
+@{
+    ViewBag.Title = Model.Title;
+}
+
+<div class="book-details">
+    <img src="~/images/@Model.CoverImage" alt="@Model.Title" class="details-cover" />
+    <div class="details-info">
+        <h2>@Model.Title</h2>
+        <p><strong>Author:</strong> @Model.Author</p>
+        <p><strong>Category:</strong> @Model.Format</p>
+        <p><strong>Format:</strong> @Model.Format</p>
+        <p><strong>Borrow Price:</strong> $@Model.BorrowPrice</p>
+        <p><strong>Buy Price:</strong> $@Model.BuyPrice</p>
+    </div>
+</div>

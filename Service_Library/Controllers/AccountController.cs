@@ -1,0 +1,112 @@
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Service_Library.Entities;
+using Service_Library.Models;
+using System.Security.Claims;
+
+namespace Service_Library.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly AppDbContext _context;
+
+        public AccountController(AppDbContext context)
+        {
+            _context = context;
+        }
+        public IActionResult Index()
+        {
+            return View(_context.UserAccounts.ToList());
+        }
+        public IActionResult Registration()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult Registration(RegistrationViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                UserAccount acc = new UserAccount();
+                acc.FirstName = model.FirstName;
+                acc.LastName = model.LastName;
+                acc.Email = model.Email;
+                acc.Password = model.Password;
+                try
+                {
+                    _context.UserAccounts.Add(acc);
+                    _context.SaveChanges();
+
+                    ModelState.Clear();
+                    ViewBag.Message = $"Registration Successful";
+                }
+                catch (DbUpdateException ex)
+                {
+                    ModelState.AddModelError("", "Email already exists");
+                    return View(model);
+                }
+                return View();
+
+            }
+            return View(model);
+        }
+       
+        public IActionResult Login()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult Login(LoginViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = _context.UserAccounts
+                    .Where(u => u.Email == model.Email && u.Password == model.Password)
+                    .FirstOrDefault();
+
+                if (user != null)
+                {
+                    // Add claims, including the NameIdentifier for the User ID
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // User ID as NameIdentifier
+                        new Claim(ClaimTypes.Name, user.Email),                   // Email as Name
+                        new Claim("Name", user.FirstName),                        // User's First Name
+                        new Claim(ClaimTypes.Role, user.Role ?? "User")           // Role with fallback
+                    };
+
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                    HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity)
+                    );
+
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Invalid Email or Password");
+                }
+            }
+            return View(model);
+        }
+
+
+        public IActionResult Logout()
+        {
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index");
+        }
+
+        [Authorize]
+        public IActionResult SecurePage()
+        {
+            ViewBag.Name = HttpContext.User.Identity.Name;
+            return View();
+        }
+    }
+}
