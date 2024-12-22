@@ -22,6 +22,7 @@ namespace Service_Library.Controllers
 
         public IActionResult Index()
         {
+
             return View();
         }
 
@@ -40,6 +41,12 @@ namespace Service_Library.Controllers
             }
 
             return NotFound(); // Return 404 if no icon exists
+        }
+        [HttpGet("trigger-reminder-emails")]
+        public async Task<IActionResult> TriggerReminderEmails([FromServices] ReminderService reminderService)
+        {
+            await reminderService.SendReminderEmails();
+            return Ok("Reminder emails sent!");
         }
 
         [HttpGet]

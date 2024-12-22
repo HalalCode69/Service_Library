@@ -1,4 +1,8 @@
-﻿<!-- Filter Button -->
+﻿@model IEnumerable<Service_Library.Models.Book>
+
+<!-- Page Header -->
+<h1 class="mb-4">My Library</h1>
+<!-- Filter Button -->
 <div class="dropdown position-absolute top-10 end-0 me-3 mt-3">
     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
         Categories
@@ -6,7 +10,7 @@
     <ul class="dropdown-menu dropdown-menu-end wide-dropdown" aria-labelledby="filterDropdown" style="max-height: 200px; overflow-y: auto;">
         <li>
             <label class="dropdown-item">
-                <input type="radio" name="categoryFilter" value="" checked onchange="filterByCategory('')"> All Categories
+                <input type="radio" name="categoryFilter" value="" @(string.IsNullOrEmpty(ViewContext.HttpContext.Request.Query["categoryFilter"]) ? "checked" : "") onchange="filterByCategory('')"> All Categories
             </label>
         </li>
         @foreach (var category in ViewBag.Categories as IEnumerable<string>)
@@ -20,18 +24,8 @@
         }
     </ul>
 </div>
-
-<script>
-    // JavaScript function for filtering by category
-    function filterByCategory(category) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('categoryFilter', decodeURIComponent(category)); // Update or add the `categoryFilter` query parameter
-        url.searchParams.delete('search'); // Optional: Clear the search query when changing the category
-        window.location.href = url.toString(); // Redirect to the updated URL
-    }
-</script>
+<!-- Library Book Container -->
 <div class="book-container">
-
     @foreach (var book in Model)
     {
         <script>
@@ -139,66 +133,49 @@
                 attachHoverEffects();
             }
         </script>
-
-
-
-
         <div class="book-card" data-category="@book.Category" data-bs-toggle="modal" data-bs-target="#bookModal-@book.BookId">
             @if (book.CoverImage != null)
             {
                 <img src="data:image/png;base64,@(Convert.ToBase64String(book.CoverImage))"
-                alt="Cover Image" class="book-cover" />
+                     alt="Cover Image" class="book-cover" />
             }
 
+            <!-- Book Info -->
             <div class="book-info">
                 <h6 class="book-title">@book.Title</h6>
-                <p class="book-publisher">@book.Publisher</p>
-
-                <!-- Indicate Borrowed or Bought, or Show Price if Neither -->
-                @if (!string.IsNullOrEmpty(book.RemainingBorrowTime))
-                {
-                    <p style="font-weight: bold; color: #ffc107;">Borrowed</p>
-                }
-                else if (book.IsOwnedByCurrentUser)
-                {
-                    <p style="font-weight: bold; color: #d21e3c;">Bought</p>
-                }
-                else
-                {
-                    <!-- Display Price/Discount Information -->
-                    @if (book.DiscountPrice > 0 && book.DiscountEndDate >= DateTime.Now)
+                <p class="book-publisher">@book.Author</p>
+                <p style="font-weight: bold;">
+                    @if (!string.IsNullOrEmpty(book.RemainingBorrowTime))
                     {
-                        <p class="book-price">
-                            <span class="strike-price">$@book.PreviousBuyPrice.ToString("F2")</span>
-                            <span class="discount-price">$@book.DiscountPrice.ToString("F2")</span>
-                        </p>
-                        <p style="font-size: 0.8rem; color: gray;">
-                            Discount ends on: @book.DiscountEndDate.ToShortDateString()
-                        </p>
+                        <span style="color: #ffc107;">Borrowed</span>
                     }
                     else
                     {
-                        <p class="book-price">$@book.BuyPrice.ToString("F2")</p>
+                        <span style="color: #d21e3c;">Bought</span>
                     }
+                </p>
+
+
+
+                <!-- Borrow Time Remaining -->
+                @if (!string.IsNullOrEmpty(book.RemainingBorrowTime))
+                {
+                    <p class="text-danger">Borrow Time Remaining: @book.RemainingBorrowTime</p>
+                    <button class="btn btn-warning return-button"
+                            data-transaction-id="@book.BorrowTransactionId"
+                            data-book-id="@book.BookId">
+                        Return Book
+                    </button>
                 }
 
-                <!-- Waiting List Count -->
-                <p class="text-info">Waiting List: @book.WaitingListCount users</p>
-
-                <!-- User Waiting List Information -->
-                @if (book.IsUserOnWaitingList)
+                <!-- Purchased Info -->
+                @if (string.IsNullOrEmpty(book.RemainingBorrowTime))
                 {
-                    <p class="text-warning">You are in position: @book.UserWaitingPosition</p>
-                    <form method="post" asp-controller="Books" asp-action="LeaveWaitingList">
-                        <input type="hidden" name="bookId" value="@book.BookId" />
-                        <button type="submit" class="btn btn-danger btn-sm">Leave Waiting List</button>
-                    </form>
+                    <p class="text-success">Purchased: This book is yours forever!</p>
                 }
             </div>
-
-
-
         </div>
+
         <!-- Modal for Book Details -->
         <div class="modal fade" id="bookModal-@book.BookId" tabindex="-1" aria-labelledby="bookModalLabel-@book.BookId" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -207,109 +184,28 @@
                         <h5 class="modal-title" id="bookModalLabel-@book.BookId">@book.Title</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-
                     <div class="modal-body">
                         <!-- Book Details Section -->
                         <div class="book-details">
-                            <div>
-                                <p><strong>Author:</strong> @book.Author</p>
-                                <p><strong>Publisher:</strong> @book.Publisher</p>
-                                <p><strong>Format:</strong> @book.Format</p>
-                                <p><strong>Category:</strong> @book.Category</p>
-                                @if (!book.IsBorrowable)
-                                {
-                                    <p class="book-price">
-                                        <strong style="color: #212529;">Borrow Price:</strong>
-                                        <span class="strike-price" style="text-decoration: line-through; margin-left: 5px; color: gray;">$@book.BorrowPrice.ToString("F2")</span>
-                                    </p>
-                                }
-                                else
-                                {
-                                <p class="book-price">
-                                    <strong style="color: #212529;">Borrow Price:</strong>
-                                        <span style="color: #007bff; font-weight: bold; margin-left: 5px;">$@book.BorrowPrice.ToString("F2") </span>
-                                        <strong style="color: #212529;">for 30 days.</strong>
-                                </p>
-                                }
-                                <!-- Discounted Price Logic -->
-                                @if (book.DiscountPrice > 0 && book.DiscountEndDate >= DateTime.Now)
-                                {
-                                    <p class="book-price">
-                                        <strong style="color: #212529;">Buy Price:</strong>
-                                        <span class="strike-price" style="text-decoration: line-through; margin-left: 5px; color: gray;">$@book.PreviousBuyPrice.ToString("F2")</span>
-                                        <span class="discount-price" style="color: red; font-weight: bold; margin-left: 10px;">$@book.DiscountPrice.ToString("F2")</span>
-                                    </p>
-                                    <p style="font-size: 0.8rem; color: gray;">
-                                        Discount ends on: @book.DiscountEndDate.ToShortDateString()
-                                    </p>
-                                }
-                                else
-                                {
-                                    <p class="book-price">
-                                        <strong style="color: #212529;">Buy Price:</strong>
-                                        <span style="color: #007bff; font-weight: bold; margin-left: 5px;">$@book.BuyPrice.ToString("F2")</span>
-                                    </p>
-                                }
-                            </div>
-
-                            <!-- Buttons Section -->
-                            <div class="modal-buttons" id="button-container-@book.BookId">
-                                @if (book.IsOwnedByCurrentUser)
-                                {
-                                    <p class="text-success"><strong>You own this book!</strong></p>
-                                }
-                                else if (book.IsReservedForCurrentUser)
-                                {
-                                    <p class="text-info"><strong>Reserved for You:</strong> You have 24 hours to borrow this book.</p>
-                                    <button class="btn btn-success borrow-button" data-book-id="@book.BookId">Borrow</button>
-                                    <form method="post" asp-controller="Books" asp-action="LeaveWaitingList">
-                                        <input type="hidden" name="bookId" value="@book.BookId" />
-                                        <button class="btn btn-warning btn-sm mt-2 release-reservation-button" data-book-id="@book.BookId">Release Reservation</button>
-                                    </form>
-                                }
-                                else if (book.IsReservedForOtherUser)
-                                {
-                                    <p class="text-danger"><strong>Reserved:</strong> This book is currently reserved for another user.</p>
-                                }
-                                else if (book.IsAlreadyBorrowed)
-                                {
-                                    <p class="text-success"><strong>Borrowed:</strong> <span id="remaining-time-@book.BookId">@book.RemainingBorrowTime</span></p>
-                                    <button class="btn btn-danger return-button" data-transaction-id="@book.BorrowTransactionId" data-book-id="@book.BookId">Return Book</button>
-                                    <button class="btn btn-primary buy-button mt-2" data-book-id="@book.BookId">Buy Now</button>
-                                }
-                                else
-                                {
-                                    @if (!book.IsBorrowable)
-                                    {
-                                        <p class="text-danger"><strong>Not Available to Borrow</strong></p>
-                                    }
-                                    else if (book.AvailableCopies > 0)
-                                    {
-                                        <button class="btn btn-success borrow-button" data-book-id="@book.BookId">Borrow</button>
-                                    }
-                                    else
-                                    {
-                                        @if (!book.IsUserOnWaitingList)
-                                        {
-                                            <p id="waiting-list-count-@book.BookId" class="text-info">Users in Waitlist for borrow: @book.WaitingListCount</p>
-                                            <button class="btn btn-warning btn-sm join-waiting-list-button" data-book-id="@book.BookId">
-                                                Join Waiting List
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <p id="waiting-list-count-@book.BookId" class="text-warning">You are in position: @book.UserWaitingPosition</p>
-                                            <button class="btn btn-danger btn-sm leave-waiting-list-button" data-book-id="@book.BookId">
-                                                Leave Waiting List
-                                            </button>
-                                        }
-                                    }
-
-                                    <button class="btn btn-primary buy-button mt-2" data-book-id="@book.BookId">Buy Now</button>
-                                }
-                            </div>
+                            <p><strong>Author:</strong> @book.Author</p>
+                            <p><strong>Publisher:</strong> @book.Publisher</p>
+                            <p><strong>Format:</strong> @book.Format</p>
+                            <p><strong>Category:</strong> @book.Category</p>
+                            @if (!string.IsNullOrEmpty(book.RemainingBorrowTime))
+                            {
+                                <p class="text-danger">Borrow Time Remaining: @book.RemainingBorrowTime</p>
+                                <button class="btn btn-warning"
+                                        onclick="confirmReturnBook('@book.BorrowTransactionId', '@book.BookId')">
+                                    Return Book
+                                </button>
+                            }
+                            else// Only show delete option for purchased books
+                            {
+                                <button class="btn btn-danger delete-button" data-book-id="@book.BookId">
+                                    Delete from Library
+                                </button>
+                            }
                         </div>
-
                         <!-- Book Image Section -->
                         @if (book.CoverImage != null)
                         {
@@ -414,9 +310,54 @@
                             });
                         </script>
                     </div>
+
                 </div>
             </div>
         </div>
-
     }
 </div>
+
+<!-- Script to Filter Library -->
+<script>
+    function filterByCategory(category) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('categoryFilter', decodeURIComponent(category)); // Update or add the `categoryFilter` query parameter
+        url.searchParams.delete('search'); // Optional: Clear the search query when changing the category
+        window.location.href = url.toString(); // Redirect to the updated URL
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const returnButtons = document.querySelectorAll('.return-button');
+
+        returnButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const transactionId = this.getAttribute('data-transaction-id');
+                const bookId = this.getAttribute('data-book-id');
+
+                if (confirm("Are you sure you want to return this book?")) {
+                    fetch(`/Books/ReturnBook`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        body: JSON.stringify({ transactionId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload(); // Reload the page to refresh the library
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        alert("An error occurred while returning the book.");
+                    });
+                }
+            });
+        });
+    });
+</script>

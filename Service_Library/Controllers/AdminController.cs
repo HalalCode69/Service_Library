@@ -46,6 +46,7 @@ namespace Service_Library.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Handle file upload
                 if (CoverImage != null && CoverImage.Length > 0)
                 {
                     using (var ms = new MemoryStream())
@@ -55,13 +56,24 @@ namespace Service_Library.Controllers
                     }
                 }
 
-                _context.Books.Add(model); // Save the book (including Category) in the database
+                // Save the book in the database
+                _context.Books.Add(model);
                 _context.SaveChanges();
                 return RedirectToAction("ManageBooks");
             }
 
+            // Repopulate categories if validation fails
+            ViewBag.Categories = new List<string>
+            {
+                "Fiction", "Non-Fiction", "Mystery", "Science Fiction", "Fantasy",
+                "Biography", "History", "Self-Help", "Psychology", "Business",
+                "Health", "Science", "Romance", "Adventure", "Horror",
+                "Children's Books", "Cooking", "Travel", "Art", "Technology"
+            };
+
             return View(model);
         }
+
 
 
 
@@ -130,6 +142,7 @@ namespace Service_Library.Controllers
             // Update basic book properties
             existingBook.Title = model.Title;
             existingBook.Author = model.Author;
+            existingBook.Publisher = model.Publisher;
             existingBook.Format = model.Format;
             existingBook.BorrowPrice = model.BorrowPrice;
             existingBook.BuyPrice = model.BuyPrice;

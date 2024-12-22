@@ -7,6 +7,7 @@ namespace Service_Library.Models
         public int BookId { get; set; }
         public string Title { get; set; }
         public string Author { get; set; }
+        public string Publisher { get; set; }
         public string Format { get; set; }
         public decimal BorrowPrice { get; set; }
         public int BorrowedCopies { get; set; }
@@ -18,7 +19,21 @@ namespace Service_Library.Models
         public bool IsBorrowable { get; set; }
         public byte[]? CoverImage { get; set; }
         public string Category { get; set; }
+        public int? ReservedForUserId { get; set; } // User ID for the reserved user
+        public DateTime? ReservationExpiry { get; set; } // Reservation expiry time
         public bool IsOwnedByCurrentUser { get; set; }
+        [NotMapped] // Ensure this is not stored in the database
+        public int EstimatedAvailabilityInDays { get; set; }
+        
+        [NotMapped]
+        public int ActiveBorrowCount { get; set; }
+
+
+        [NotMapped]
+        public bool IsReservedForCurrentUser { get; set; }
+
+        [NotMapped]
+        public bool IsReservedForOtherUser { get; set; }
 
         [NotMapped]
         public int WaitingListCount { get; set; } = 0; // Total users in waiting list
@@ -29,22 +44,15 @@ namespace Service_Library.Models
         [NotMapped]
         public bool IsUserOnWaitingList { get; set; } = false; // Whether the user is in the waiting list
         [NotMapped]
-        public string RemainingBorrowTime { get; set; } // Dynamically calculated in the controller
+        public string RemainingBorrowTime { get; set; } = string.Empty; // Dynamically calculated in the controller
 
         [NotMapped]
         public bool IsAlreadyBorrowed { get; set; } // Flag to check if user has already borrowed the book
 
         [NotMapped]
         public int UsersBeforeInWaitList { get; set; } // Users before this user in the waiting list
-
-
-        //[NotMapped] // This won't be stored in the database
-        //public string RemainingBorrowTime { get; set; }
-        //[NotMapped] // Not stored in the database
-        //public bool IsUserOnWaitingList { get; set; }
-
-        //[NotMapped] // Not stored in the database
-        //public int WaitingListCount { get; set; } // Number of users on the waiting list
+        [NotMapped]
+        public int? BorrowTransactionId { get; set; }
 
     }
 }

@@ -7,6 +7,7 @@ using Service_Library.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSignalR();
 // Add Hangfire services
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
@@ -21,10 +22,12 @@ builder.Services.AddHangfire(configuration => configuration
         DisableGlobalLocks = true
     })
 );
+
 builder.Services.AddHangfireServer();
 // Add email service
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 builder.Services.AddTransient<EmailService>();
+builder.Services.AddTransient<ReminderService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -37,7 +40,7 @@ var app = builder.Build();
 
 // Configure Hangfire Dashboard (optional for monitoring)
 app.UseHangfireDashboard();
-
+app.MapHangfireDashboard();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -56,5 +59,12 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+RecurringJob.AddOrUpdate<AutoReturnService>(
+    service => service.AutoReturnOverdueBooks(),
+    Cron.Minutely // Check every minute
+);
+RecurringJob.AddOrUpdate<ReminderService>(
+    reminderService => reminderService.SendReminderEmails(),
+    Cron.Minutely); // Runs the job every minute
 
 app.Run();

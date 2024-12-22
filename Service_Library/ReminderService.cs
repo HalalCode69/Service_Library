@@ -42,7 +42,6 @@ namespace Service_Library.Services
                 // Mark reminder as sent
                 transaction.ReminderSent = true;
             }
-
             await _context.SaveChangesAsync();
         }
     }

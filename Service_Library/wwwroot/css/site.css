@@ -4,6 +4,7 @@
     flex-wrap: wrap;
     gap: 20px; /* Space between cards */
     justify-content: flex-start; /* Align cards to the left */
+    margin-top: 20px; /* Adds space from the top */
 }
 
 /* Navbar Customization */
@@ -13,6 +14,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Optional: subtle bottom border */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: soft shadow */
     transition: background 0.3s ease; /* Smooth transition */
+
 }
 
 .navbar-custom .nav-link {
@@ -22,6 +24,70 @@
 
 .navbar-custom .nav-link:hover {
     color: #000; /* Darker text color on hover */
+}
+.search-container {
+    position: relative;
+}
+
+#suggestions .list-group-item {
+    cursor: pointer;
+}
+
+#suggestions .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+.navbar .form-control {
+    width: 260px; /* Adjust as needed */
+    background-color: rgba(255, 255, 255, 0.8);
+}
+.book-card {
+    position: relative;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+    .book-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        z-index: 2; /* Ensure overlay is above other content */
+        pointer-events: none;
+        background-image: var(--background-image, none); /* Dynamically set via JavaScript */
+        transition: background-image 0.3s ease-in-out; /* Smooth transition */
+    }
+
+
+.img-fluid {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.book-image-container {
+    position: relative;
+    border-radius: 10px; /* Ensure the container has rounded corners */
+    width: 180px; /* Thinner card */
+    height: 240px; /* Adjust height */
+}
+
+
+.effect-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none; /* Prevent the overlay from blocking user interactions */
+    z-index: 2; /* Ensure it appears on top of the image */
+    border-radius: inherit; /* Inherit the parent's border-radius */
 }
 
 /* Book Card */
@@ -38,8 +104,8 @@
 }
 
 .book-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.3);
+    background-color: rgba(50, 50, 50, 0.01);
+    transform: scale(1.06);
 }
 
 /* Book Cover Image */
@@ -88,25 +154,65 @@
     font-weight: bold;
 }
 
+.wide-dropdown {
+    max-height: 200px;
+    overflow-y: auto;
+    width: auto; /* Adjust to content width */
+    z-index: 1050; /* Ensure it appears above other elements */
+}
+
+.wide-dropdown .dropdown-item {
+    white-space: nowrap; /* Prevent text wrapping */
+}
 .strike-price {
     text-decoration: line-through;
     color: gray;
     font-size: 0.9rem;
 }
+.strike-price2 {
+    text-decoration: line-through;
+    color: gray;
+}
 
-/* Modal styles */
 .modal-body {
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* Align items to the top */
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 15px;
+    gap: 20px; /* Add some space between image and text */
+}
+.button-container {
+    display: flex;
+    justify-content: flex-start; /* Align buttons to the left */
+    gap: 10px; /* Add spacing between buttons */
+    flex-wrap: wrap; /* Ensure buttons wrap on smaller screens */
+}
+
+.book-details p {
+    margin-bottom: 0.5rem; /* Reduce margin for cleaner spacing */
+}
+
+
+.modal-body {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 15px; /* Spacing between text and image */
 }
 
 .book-details {
-    flex: 1;
-    margin-right: 10px;
+    flex: 1; /* Allow text section to take available space */
+    display: flex;
+    flex-direction: column; /* Stack text and buttons vertically */
+    justify-content: space-between; /* Space text and buttons evenly */
 }
+
+.modal-body img {
+    width: 200px;
+    height: 240px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
 
 .modal-body img {
     width: 200px;
@@ -159,3 +265,6 @@
         height: 120px;
     }
 }
+
+
+

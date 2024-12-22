@@ -1,4 +1,8 @@
-body {
+/* Apply the background gradient to html and body */
+html, body {
+	margin: 0;
+	padding: 0;
+	height: 100%; /* Ensures both html and body expand */
 	background: linear-gradient(-45deg, #ffb3ba 0%, /* Pastel red */
 	#ffdfba 12%, /* Pastel orange */
 	#ffffba 25%, /* Pastel yellow */
@@ -11,9 +15,10 @@ body {
 	);
 	background-size: 800% 800%;
 	animation: gradient 40s ease infinite;
-	height: 100vh;
+	background-attachment: fixed; /* Keeps the gradient fixed while scrolling */
 }
 
+/* Keyframes for animated gradient */
 @keyframes gradient {
 	0% {
 		background-position: 0% 50%;
