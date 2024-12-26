@@ -5,14 +5,14 @@
 namespace Service_Library.Migrations
 {
     /// <inheritdoc />
-    public partial class AddReminderSentToBorrowTransaction : Migration
+    public partial class AddBoolPostedfeed : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "ReminderSent",
-                table: "BorrowTransactions",
+                name: "UserHasPostedFeedback",
+                table: "Books",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
@@ -22,8 +22,8 @@ namespace Service_Library.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ReminderSent",
-                table: "BorrowTransactions");
+                name: "UserHasPostedFeedback",
+                table: "Books");
         }
     }
 }

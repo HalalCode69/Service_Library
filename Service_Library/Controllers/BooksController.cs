@@ -11,15 +11,15 @@ namespace Service_Library.Controllers
     {
         private readonly AppDbContext _context;
         private readonly EmailService _emailService;
+        private readonly ILogger<BooksController> _logger;
 
-        public BooksController(AppDbContext context, EmailService emailService)
+        public BooksController(AppDbContext context, EmailService emailService, ILogger<BooksController> logger)
         {
             _context = context;
             _emailService = emailService;
+            _logger = logger;
         }
 
-        // Display all books with search and filter
-        [Authorize]
         public IActionResult Index(string search, string categoryFilter, string formatFilter, string sort)
         {
             var books = _context.Books.AsQueryable();
@@ -41,13 +41,7 @@ namespace Service_Library.Controllers
             }
 
             // Apply category filter
-            if (!string.IsNullOrEmpty(search))
-            {
-                books = books.Where(b =>
-                    (b.Title.Contains(search) || b.Author.Contains(search) || b.Publisher.Contains(search)) &&
-                    (string.IsNullOrEmpty(categoryFilter) || b.Category == categoryFilter));
-            }
-            else if (!string.IsNullOrEmpty(categoryFilter))
+            if (!string.IsNullOrEmpty(categoryFilter))
             {
                 books = books.Where(b => b.Category == categoryFilter);
             }
@@ -74,8 +68,33 @@ namespace Service_Library.Controllers
             var waitingList = _context.WaitingList.ToList();
 
             var bookList = books.ToList();
+            ViewBag.CurrentUserId = userId;
+
             foreach (var book in bookList)
             {
+                book.Feedbacks = _context.Feedbacks
+                    .Where(f => f.BookId == book.BookId)
+                    .OrderByDescending(f => f.Date)
+                    .Select(f => new Feedback
+                    {
+                        FeedbackId = f.FeedbackId,
+                        BookId = f.BookId,
+                        UserId = f.UserId,
+                        Rating = f.Rating,
+                        Comment = f.Comment,
+                        Date = f.Date,
+                        FirstName = _context.UserAccounts
+                            .Where(u => u.Id.ToString() == f.UserId)
+                            .Select(u => u.FirstName)
+                            .FirstOrDefault() ?? "Anonymous",
+                        LastName = _context.UserAccounts
+                            .Where(u => u.Id.ToString() == f.UserId)
+                            .Select(u => u.LastName)
+                            .FirstOrDefault() ?? ""
+                    })
+                    .ToList();
+
+
                 // Check active borrow count
                 book.ActiveBorrowCount = _context.BorrowTransactions
                     .Count(bt => bt.BookId == book.BookId && !bt.IsReturned);
@@ -131,10 +150,23 @@ namespace Service_Library.Controllers
                 {
                     book.UsersBeforeInWaitList = book.WaitingListCount;
                 }
+
+                // Fetch the user's rating for the book
+                var userRating = _context.UserRatings
+                    .Where(r => r.BookId == book.BookId && r.UserId == userId)
+                    .Select(r => (int?)r.Rating)
+                    .FirstOrDefault();
+                book.UserRating = userRating;
+
+                // Fetch the user's comment for the book
+                var userFeedback = _context.Feedbacks
+                    .FirstOrDefault(f => f.BookId == book.BookId && f.UserId == userId.ToString());
+                book.UserComment = userFeedback?.Comment ?? string.Empty; // Precompute the user's comment
             }
 
             return View(bookList);
         }
+
 
 
         // View book details
@@ -211,7 +243,7 @@ namespace Service_Library.Controllers
                 if (book.AvailableCopies > 0 || (book.ReservedForUserId == userId && book.ReservationExpiry > DateTime.Now))
                 {
                     var borrowDate = DateTime.Now;
-                    var returnDate = borrowDate.AddMinutes(1); // Replace with correct borrow duration logic.
+                    var returnDate = borrowDate.AddDays(5); // Replace with correct borrow duration logic.
 
                     var transaction = new BorrowTransaction
                     {
@@ -256,6 +288,7 @@ namespace Service_Library.Controllers
                 return Json(new { success = false, message = "An error occurred while processing your request." });
             }
         }
+
 
 
 
@@ -464,10 +497,10 @@ namespace Service_Library.Controllers
                         {
                             string subject = "Book Available for Borrowing";
                             string body = $@"
-                    <p>Dear {user.FirstName},</p>
-                    <p>The book <strong>{book.Title}</strong> is now reserved for you.</p>
-                    <p>Please borrow it within the next 24 hours.</p>
-                    <p>Thank you!</p>";
+                                <p>Dear {user.FirstName},</p>
+                                <p>The book <strong>{book.Title}</strong> is now reserved for you.</p>
+                                <p>Please borrow it within the next 24 hours.</p>
+                                <p>Thank you!</p>";
 
                             _emailService.SendEmailAsync(user.Email, subject, body).Wait();
                         }
@@ -518,70 +551,71 @@ namespace Service_Library.Controllers
 
 
         [Authorize]
-        [HttpPost]
-        public IActionResult BuyBook([FromBody] BuyBookRequest request)
-        {
-            if (request == null || request.BookId <= 0)
-            {
-                return Json(new { success = false, message = "Invalid book ID." });
-            }
+[HttpPost]
+public IActionResult BuyBook([FromBody] BuyBookRequest request)
+{
+    if (request == null || request.BookId <= 0)
+    {
+        return Json(new { success = false, message = "Invalid book ID." });
+    }
 
-            var book = _context.Books.FirstOrDefault(b => b.BookId == request.BookId);
+    var book = _context.Books.FirstOrDefault(b => b.BookId == request.BookId);
 
-            if (book == null)
-            {
-                return Json(new { success = false, message = "Book not found." });
-            }
+    if (book == null)
+    {
+        return Json(new { success = false, message = "Book not found." });
+    }
 
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+    var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            // Check if user already owns the book
-            var existingTransaction = _context.Transactions
-                .FirstOrDefault(t => t.UserId == userId && t.BookId == request.BookId && t.TransactionType == "Buy");
+    // Check if user already owns the book
+    var existingTransaction = _context.Transactions
+        .FirstOrDefault(t => t.UserId == userId && t.BookId == request.BookId && t.TransactionType == "Buy");
 
-            if (existingTransaction != null)
-            {
-                return Json(new { success = false, message = "You already own this book!" });
-            }
+    if (existingTransaction != null)
+    {
+        return Json(new { success = false, message = "You already own this book!" });
+    }
 
-            // Remove user from the waiting list (if they are on it)
-            var waitingListEntry = _context.WaitingList
-                .FirstOrDefault(w => w.BookId == request.BookId && w.UserId == userId);
+    // Remove user from the waiting list (if they are on it)
+    var waitingListEntry = _context.WaitingList
+        .FirstOrDefault(w => w.BookId == request.BookId && w.UserId == userId);
 
-            if (waitingListEntry != null)
-            {
-                _context.WaitingList.Remove(waitingListEntry);
-            }
+    if (waitingListEntry != null)
+    {
+        _context.WaitingList.Remove(waitingListEntry);
+    }
 
-            // Handle active borrow transactions
-            var borrowTransaction = _context.BorrowTransactions
-                .FirstOrDefault(bt => bt.BookId == request.BookId && bt.UserId == userId && !bt.IsReturned);
+    // Handle active borrow transactions
+    var borrowTransaction = _context.BorrowTransactions
+        .FirstOrDefault(bt => bt.BookId == request.BookId && bt.UserId == userId && !bt.IsReturned);
 
-            if (borrowTransaction != null)
-            {
-                borrowTransaction.IsReturned = true; // Mark as returned
-            }
+    if (borrowTransaction != null)
+    {
+        borrowTransaction.IsReturned = true; // Mark as returned
+    }
 
-            // Create a transaction for buying
-            var transaction = new Transaction
-            {
-                UserId = userId,
-                BookId = request.BookId,
-                TransactionType = "Buy",
-                TransactionDate = DateTime.Now,
-                Status = "Completed"
-            };
+    // Create a transaction for buying
+    var transaction = new Transaction
+    {
+        UserId = userId,
+        BookId = request.BookId,
+        TransactionType = "Buy",
+        TransactionDate = DateTime.Now,
+        Status = "Completed"
+    };
 
-            _context.Transactions.Add(transaction);
-            _context.SaveChanges();
+    _context.Transactions.Add(transaction);
+    _context.SaveChanges();
 
-            return Json(new
-            {
-                success = true,
-                message = "Book purchased successfully!",
-                bookId = request.BookId
-            });
-        }
+    return Json(new
+    {
+        success = true,
+        message = "Book purchased successfully!",
+        bookId = request.BookId
+    });
+}
+
         public class BuyBookRequest
         {
             public int BookId { get; set; }
@@ -685,11 +719,102 @@ namespace Service_Library.Controllers
                 return Json(new { success = false, message = "An error occurred while deleting the book." });
             }
         }
+        [HttpPost]
+        [Authorize]
+        public IActionResult SubmitFeedback([FromBody] FeedbackRequest request)
+        {
+            // Basic validations
+            if (request == null || request.BookId <= 0)
+            {
+                return Json(new { success = false, message = "Invalid book ID." });
+            }
 
+            if (request.Rating < 1 || request.Rating > 5)
+            {
+                return Json(new { success = false, message = "Invalid rating. Must be between 1 and 5." });
+            }
 
+            // Get the currently logged-in user's ID
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
+            // Check if the book exists
+            var book = _context.Books.FirstOrDefault(b => b.BookId == request.BookId);
+            if (book == null)
+            {
+                return Json(new { success = false, message = "Book not found." });
+            }
 
+            // Check if the user has borrowed or purchased the book
+            bool hasBorrowed = _context.BorrowTransactions.Any(bt => bt.BookId == request.BookId && bt.UserId == userId && !bt.IsReturned);
+            bool hasPurchased = _context.Transactions.Any(t => t.BookId == request.BookId && t.UserId == userId && t.TransactionType == "Buy");
 
+            if (!hasBorrowed && !hasPurchased)
+            {
+                return Json(new { success = false, message = "You must borrow or buy the book before leaving feedback." });
+            }
+
+            try
+            {
+                // Check if feedback already exists for this user & book
+                var existingFeedback = _context.Feedbacks
+                    .FirstOrDefault(f => f.BookId == request.BookId && f.UserId == userId.ToString());
+
+                if (existingFeedback != null)
+                {
+                    // Update existing feedback
+                    existingFeedback.Rating = request.Rating;
+                    existingFeedback.Comment = request.Comment ?? string.Empty;
+                    existingFeedback.Date = DateTime.Now;
+                }
+                else
+                {
+                    // Create new feedback
+                    var newFeedback = new Feedback
+                    {
+                        BookId = request.BookId,
+                        UserId = userId.ToString(),
+                        Rating = request.Rating,
+                        Comment = request.Comment ?? string.Empty,
+                        Date = DateTime.Now,
+                    };
+                    _context.Feedbacks.Add(newFeedback);
+                }
+
+                // Update the average rating and rating count
+                var allFeedbacksForBook = _context.Feedbacks
+                    .Where(f => f.BookId == request.BookId)
+                    .ToList();
+
+                double newAvg = 0;
+                int newCount = allFeedbacksForBook.Count;
+
+                if (newCount > 0)
+                {
+                    newAvg = allFeedbacksForBook.Average(f => f.Rating);
+                }
+
+                // Update the Book entity in memory
+                book.RatingCount = newCount;
+                book.AverageRating = newAvg;
+
+                // Save changes
+                _context.SaveChanges();
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Feedback submitted successfully.",
+                    ratingCount = book.RatingCount,
+                    averageRating = book.AverageRating
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the error for debugging
+                _logger.LogError(ex, "An error occurred while submitting feedback.");
+                return Json(new { success = false, message = "An error occurred while submitting your feedback." });
+            }
+        }
 
 
         [HttpGet]

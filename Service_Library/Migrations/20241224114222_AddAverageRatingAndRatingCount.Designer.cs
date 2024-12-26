@@ -12,8 +12,8 @@ using Service_Library.Entities;
 namespace Service_Library.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241218135300_AddReminderSentToBorrowTransaction")]
-    partial class AddReminderSentToBorrowTransaction
+    [Migration("20241224114222_AddAverageRatingAndRatingCount")]
+    partial class AddAverageRatingAndRatingCount
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -73,12 +73,19 @@ namespace Service_Library.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookId"));
 
+                    b.Property<string>("AgeLimit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Author")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("AvailableCopies")
                         .HasColumnType("int");
+
+                    b.Property<double>("AverageRating")
+                        .HasColumnType("float");
 
                     b.Property<decimal>("BorrowPrice")
                         .HasColumnType("decimal(18,2)");
@@ -109,12 +116,34 @@ namespace Service_Library.Migrations
                     b.Property<bool>("IsBorrowable")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsOwnedByCurrentUser")
+                        .HasColumnType("bit");
+
                     b.Property<decimal?>("PreviousBuyPrice")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Publisher")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RatingCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReservationExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ReservedForUserId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UserRating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("YearOfPublishing")
+                        .HasColumnType("int");
 
                     b.HasKey("BookId");
 
@@ -156,6 +185,38 @@ namespace Service_Library.Migrations
                     b.ToTable("BorrowTransactions");
                 });
 
+            modelBuilder.Entity("Service_Library.Models.Feedback", b =>
+                {
+                    b.Property<int>("FeedbackId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeedbackId"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("FeedbackId");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("Feedbacks");
+                });
+
             modelBuilder.Entity("Service_Library.Models.Transaction", b =>
                 {
                     b.Property<int>("TransactionId")
@@ -190,6 +251,32 @@ namespace Service_Library.Migrations
                     b.ToTable("Transactions");
                 });
 
+            modelBuilder.Entity("Service_Library.Models.UserRating", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserRatings");
+                });
+
             modelBuilder.Entity("Service_Library.Models.WaitingList", b =>
                 {
                     b.Property<int>("WaitingListId")
@@ -203,6 +290,9 @@ namespace Service_Library.Migrations
 
                     b.Property<int>("BookId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("Notified")
+                        .HasColumnType("bit");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -260,7 +350,35 @@ namespace Service_Library.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Service_Library.Models.Feedback", b =>
+                {
+                    b.HasOne("Service_Library.Models.Book", null)
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Service_Library.Models.Transaction", b =>
+                {
+                    b.HasOne("Service_Library.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Service_Library.Entities.UserAccount", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Service_Library.Models.UserRating", b =>
                 {
                     b.HasOne("Service_Library.Models.Book", "Book")
                         .WithMany()
@@ -296,6 +414,11 @@ namespace Service_Library.Migrations
                     b.Navigation("Book");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Service_Library.Models.Book", b =>
+                {
+                    b.Navigation("Feedbacks");
                 });
 #pragma warning restore 612, 618
         }

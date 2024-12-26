@@ -5,24 +5,23 @@
 namespace Service_Library.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIsOwnedByCurrentUserToBooks : Migration
+    public partial class AddUserRatingToBook11 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsOwnedByCurrentUser",
+            migrationBuilder.AddColumn<int>(
+                name: "UserRating",
                 table: "Books",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
+                type: "int",
+                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "IsOwnedByCurrentUser",
+                name: "UserRating",
                 table: "Books");
         }
     }

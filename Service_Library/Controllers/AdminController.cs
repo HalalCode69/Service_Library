@@ -32,11 +32,29 @@ namespace Service_Library.Controllers
         {
             ViewBag.Categories = new List<string>
             {
-                "Fiction", "Non-Fiction", "Mystery", "Science Fiction", "Fantasy",
-                "Biography", "History", "Self-Help", "Psychology", "Business",
-                "Health", "Science", "Romance", "Adventure", "Horror",
-                "Children's Books", "Cooking", "Travel", "Art", "Technology"
+                "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
+                "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
+                "Art", "Art History", "Astrology", "Astronomy", "Biology",
+                "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
+                "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
+                "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
+                "Economics", "Education", "Engineering", "Environment", "Environmental Science",
+                "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
+                "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
+                "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
+                "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
+                "Memoir", "Military", "Mindfulness", "Music", "Mystery",
+                "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
+                "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
+                "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
+                "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
+                "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
+                "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
+                "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
+                "World Cultures", "Zoology"
             };
+
+
             return View();
         }
 
@@ -65,11 +83,29 @@ namespace Service_Library.Controllers
             // Repopulate categories if validation fails
             ViewBag.Categories = new List<string>
             {
-                "Fiction", "Non-Fiction", "Mystery", "Science Fiction", "Fantasy",
-                "Biography", "History", "Self-Help", "Psychology", "Business",
-                "Health", "Science", "Romance", "Adventure", "Horror",
-                "Children's Books", "Cooking", "Travel", "Art", "Technology"
+                "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
+                "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
+                "Art", "Art History", "Astrology", "Astronomy", "Biology",
+                "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
+                "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
+                "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
+                "Economics", "Education", "Engineering", "Environment", "Environmental Science",
+                "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
+                "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
+                "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
+                "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
+                "Memoir", "Military", "Mindfulness", "Music", "Mystery",
+                "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
+                "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
+                "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
+                "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
+                "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
+                "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
+                "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
+                "World Cultures", "Zoology"
             };
+
+
 
             return View(model);
         }
@@ -87,11 +123,29 @@ namespace Service_Library.Controllers
 
             ViewBag.Categories = new List<string>
             {
-                "Fiction", "Non-Fiction", "Mystery", "Science Fiction", "Fantasy",
-                "Biography", "History", "Self-Help", "Psychology", "Business",
-                "Health", "Science", "Romance", "Adventure", "Horror",
-                "Children's Books", "Cooking", "Travel", "Art", "Technology"
+                "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
+                "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
+                "Art", "Art History", "Astrology", "Astronomy", "Biology",
+                "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
+                "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
+                "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
+                "Economics", "Education", "Engineering", "Environment", "Environmental Science",
+                "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
+                "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
+                "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
+                "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
+                "Memoir", "Military", "Mindfulness", "Music", "Mystery",
+                "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
+                "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
+                "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
+                "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
+                "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
+                "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
+                "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
+                "World Cultures", "Zoology"
             };
+
+
             return View(book);
         }
 
@@ -103,11 +157,28 @@ namespace Service_Library.Controllers
             // Always populate ViewBag.Categories
             ViewBag.Categories = new List<string>
             {
-                "Fiction", "Non-Fiction", "Mystery", "Science Fiction", "Fantasy",
-                "Biography", "History", "Self-Help", "Psychology", "Business",
-                "Health", "Science", "Romance", "Adventure", "Horror",
-                "Children's Books", "Cooking", "Travel", "Art", "Technology"
+                "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
+                "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
+                "Art", "Art History", "Astrology", "Astronomy", "Biology",
+                "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
+                "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
+                "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
+                "Economics", "Education", "Engineering", "Environment", "Environmental Science",
+                "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
+                "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
+                "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
+                "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
+                "Memoir", "Military", "Mindfulness", "Music", "Mystery",
+                "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
+                "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
+                "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
+                "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
+                "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
+                "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
+                "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
+                "World Cultures", "Zoology"
             };
+
 
             // Check ModelState validity
             if (!ModelState.IsValid)

@@ -5,7 +5,7 @@
 }
 
 <h2>Edit Book</h2>
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
     <input type="hidden" name="BookId" value="@Model.BookId" />
     @if (!ViewData.ModelState.IsValid)
     {
@@ -27,7 +27,7 @@
         <input type="text" class="form-control" id="Author" asp-for="Author" />
     </div>
     <div class="form-group">
-        <label for="Author">Author</label>
+        <label for="Publisher">Publisher</label>
         <input type="text" class="form-control" id="Publisher" asp-for="Publisher" />
     </div>
     <div class="form-group">
@@ -52,27 +52,31 @@
             <option value="">-- Select Category --</option>
         </select>
     </div>
+    <div class="form-group">
+        <label for="IsBorrowable">Is Borrowable</label>
+        <input type="checkbox" id="IsBorrowable" asp-for="IsBorrowable" />
+    </div>
+    <div class="form-group">
+        <label for="CoverImage">Cover Image</label>
+        <input type="file" class="form-control-file" id="CoverImage" name="CoverImage" accept="image/*" />
+    </div>
+    <div class="form-group">
+        <label for="AgeLimit">Age Limit</label>
+        <input type="number" class="form-control" id="AgeLimit" asp-for="AgeLimit" min="0" value="0" />
+    </div>
+    <div class="form-group">
+        <label for="YearOfPublishing">Year of Publishing</label>
+        <input type="number" class="form-control" id="YearOfPublishing" asp-for="YearOfPublishing" min="0" required />
+    </div>
     <!-- Discount Section -->
     <div class="form-group">
         <label>Discount Price (Optional):</label>
         <input asp-for="DiscountPrice" class="form-control" type="number" step="0.01" />
     </div>
-
     <div class="form-group">
         <label>Discount End Date:</label>
         <input asp-for="DiscountEndDate" class="form-control" type="date" />
     </div>
-
-    <div class="form-group">
-        <label>Cover Image (Optional):</label>
-        <input type="file" name="CoverImage" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label for="IsBorrowable">Is Borrowable</label>
-        <input type="checkbox" id="IsBorrowable" asp-for="IsBorrowable" />
-    </div>
-
     <!-- Current Cover Image Preview -->
     <div class="form-group">
         <label>Current Cover Image</label>
@@ -88,19 +92,16 @@
             }
         </div>
     </div>
-
     <!-- Upload New Cover Image -->
     <div class="form-group">
         <label for="CoverImage">Upload New Cover Image</label>
         <input type="file" class="form-control-file" id="CoverImage" name="CoverImage" accept="image/*" onchange="previewImage(event)" />
     </div>
-
     <!-- New Cover Image Preview -->
     <div class="form-group">
         <label>Preview New Cover Image</label>
         <img id="newCoverPreview" src="#" alt="New Cover Preview" class="img-thumbnail" style="display: none; width: 200px; height: auto;" />
     </div>
-
     <button type="submit" class="btn btn-primary">Save Changes</button>
 </form>
 
@@ -120,6 +121,15 @@
             reader.readAsDataURL(file);
         }
     }
+
+    function validateForm() {
+        var borrowPrice = parseFloat(document.getElementById("BorrowPrice").value);
+        var buyPrice = parseFloat(document.getElementById("BuyPrice").value);
+
+        if (buyPrice <= borrowPrice) {
+            alert("Buy price must be higher than borrow price.");
+            return false;
+        }
+        return true;
+    }
 </script>
-
-

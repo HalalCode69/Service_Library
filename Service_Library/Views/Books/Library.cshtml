@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Service_Library.Models.Book>
 
 <!-- Page Header -->
-<h1 class="mb-4">My Library</h1>
+<h1 class="mb-4 library-header">My Library</h1>
 <!-- Filter Button -->
 <div class="dropdown position-absolute top-10 end-0 me-3 mt-3">
     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -36,6 +36,22 @@
                 cards.forEach((card) => {
                     const category = card.getAttribute('data-category'); // Get category
                     const categoryEffects = {
+                        "Graphic Novels": {
+                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/ki-detonate/intro.png",
+                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/ki-detonate/idle.png"
+                        },
+                        "Business": {
+                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-07/d20/intro_success.png",
+                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-07/d20/idle_success.png"
+                        },
+                        "Biography": {
+                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-22/lofi-girl-study-break/intro.png",
+                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-22/lofi-girl-study-break/idle_light.png"
+                        },
+                        "Sports": {
+                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/intro.png",
+                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/idle.png"
+                        },
                         "Science Fiction": {
                             intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-01/spirit-flame/intro.png",
                             idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-01/spirit-flame/idle.png"
@@ -65,16 +81,16 @@
                             idle: "https://cdn.discordapp.com/assets/profile_effects/effects/twilight-grove/idle.png"
                         },
                         "Children's Books": {
-                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-15/doodlebob-takeover/intro_479359c2.png",
-                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-15/doodlebob-takeover/idle.png"
+                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-13/plushie-party/intro.png",
+                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-13/plushie-party/idle.png"
                         },
                         "Mystery": {
                             intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-25/spirit-of-the-kitsune/intro.png",
                             idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-25/spirit-of-the-kitsune/idle.png"
                         },
                         "Romance": {
-                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/b17d139f2e9/magic-girl/intro.png",
-                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/b17d139f2e9/magic-girl/loop.png"
+                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/dreamy/intro.png",
+                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/dreamy/idle.png"
                         },
                         "Science": {
                             intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-14/arcane-epiphany/intro.png",
@@ -116,7 +132,7 @@
                             introTimeout = setTimeout(() => {
                                 card.style.setProperty('--background-image', `url("${idleGif}")`);
                             }, 4500); // Change to idle after 4.5 seconds
-                        }, 50);
+                        }, 10);
                     });
 
                     card.addEventListener('mouseleave', () => {
@@ -142,8 +158,22 @@
 
             <!-- Book Info -->
             <div class="book-info">
-                <h6 class="book-title">@book.Title</h6>
-                <p class="book-publisher">@book.Author</p>
+                @if (!string.IsNullOrEmpty(book.Title) && book.Title.Length <= 18)
+                {
+                    <h6 class="book-title">@book.Title</h6>
+                }
+                else
+                {
+                    <h6 class="book-title">@book.Title.Substring(0, 18)...</h6>
+                }
+                @if (!string.IsNullOrEmpty(book.Author) && book.Author.Length <= 18)
+                {
+                    <p>@book.Author</p>
+                }
+                else
+                {
+                    <p>@book.Author.Substring(0, 18)...</p>
+                }
                 <p style="font-weight: bold;">
                     @if (!string.IsNullOrEmpty(book.RemainingBorrowTime))
                     {
@@ -221,71 +251,92 @@
                             document.addEventListener('DOMContentLoaded', () => {
                                 const modal = document.getElementById('bookModal-@book.BookId');
                                 const effectOverlay = document.querySelector('#modalBookContainer-@book.BookId .effect-overlay');
+                                const categoryEffects = {
+                                    "Graphic Novels": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/ki-detonate/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/ki-detonate/idle.png"
+                                    },
+                                    "Business": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-07/d20/intro_success.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-07/d20/idle_success.png"
+                                    },
+                                    "Biography": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-22/lofi-girl-study-break/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-22/lofi-girl-study-break/idle_light.png"
+                                    },
+                                    "Sports": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/idle.png"
+                                    },
+                                    "Science Fiction": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-01/spirit-flame/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-01/spirit-flame/idle.png"
+                                    },
+                                    "Technology": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-1-19/cyberpunk-nightrunner/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-1-18/cyberpunk-nightrunner/idle.png"
+                                    },
+                                    "History": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-05-10/forgotten-treasure/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-05-09/forgotten-treasure/idle.png"
+                                    },
+                                    "Fantasy": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/b17d139f2e9/splash/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/b17d139f2e9/splash/loop.png"
+                                    },
+                                    "Cooking": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/sushi-mania/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/sushi-mania/idle.png"
+                                    },
+                                    "Psychology": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-04-04/all-nighter/idle-frame.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-04-04/all-nighter/idle-lights.png"
+                                    },
+                                    "Art": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/sunrise-grove/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/twilight-grove/idle.png"
+                                    },
+                                    "Children's Books": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-13/plushie-party/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-13/plushie-party/idle.png"
+                                    },
+                                    "Mystery": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-25/spirit-of-the-kitsune/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-25/spirit-of-the-kitsune/idle.png"
+                                    },
+                                    "Romance": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/dreamy/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/dreamy/idle.png"
+                                    },
+                                    "Science": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-14/arcane-epiphany/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-14/arcane-epiphany/idle.png"
+                                    },
+                                    "Adventure": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2023-10-11/vines/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2023-10-11/vines/loop.png"
+                                    },
+                                    "Horror": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-09-23/bubblegum-zombie-slime/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-09-23/bubblegum-zombie-slime/idle.png"
+                                    },
+                                    "Default": {
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-08-08/sakura-katana/intro.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-08-08/sakura-katana/idle.png"
+                                    }
+                                };
 
-                                        const categoryEffects = {
-                                "Science Fiction": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-01/spirit-flame/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-01/spirit-flame/idle.png"
-                                },
-                                "Technology": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-1-19/cyberpunk-nightrunner/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-1-18/cyberpunk-nightrunner/idle.png"
-                                },
-                                "History": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-05-10/forgotten-treasure/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-05-09/forgotten-treasure/idle.png"
-                                },
-                                "Fantasy": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/b17d139f2e9/splash/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/b17d139f2e9/splash/loop.png"
-                                },
-                                "Cooking": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/sushi-mania/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/sushi-mania/idle.png"
-                                },
-                                "Psychology": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-04-04/all-nighter/idle-frame.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-04-04/all-nighter/idle-lights.png"
-                                },
-                                "Art": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/sunrise-grove/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/twilight-grove/idle.png"
-                                },
-                                "Children's Books": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-15/doodlebob-takeover/intro_479359c2.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-07-15/doodlebob-takeover/idle.png"
-                                },
-                                "Mystery": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-25/spirit-of-the-kitsune/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-25/spirit-of-the-kitsune/idle.png"
-                                },
-                                "Romance": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/b17d139f2e9/magic-girl/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/b17d139f2e9/magic-girl/loop.png"
-                                },
-                                "Science": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-14/arcane-epiphany/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-14/arcane-epiphany/idle.png"
-                                },
-                                "Adventure": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2023-10-11/vines/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2023-10-11/vines/loop.png"
-                                },
-                                "Horror": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-09-23/bubblegum-zombie-slime/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-09-23/bubblegum-zombie-slime/idle.png"
-                                },
-                                "Default": {
-                                    intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-08-08/sakura-katana/intro.png",
-                                    idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-08-08/sakura-katana/idle.png"
+                                function decodeHtml(html) {
+                                    const txt = document.createElement('textarea');
+                                    txt.innerHTML = html;
+                                    return txt.value;
                                 }
-                            };
 
-                                const category = "@book.Category".trim();
+                                const category = decodeHtml("@book.Category".trim());
                                 const effects = categoryEffects[category] || categoryEffects["Default"];
 
-                                modal.addEventListener('shown.bs.modal', () => {
-                                    if (effectOverlay) {
+                                if (modal && effectOverlay) {
+                                    modal.addEventListener('shown.bs.modal', () => {
                                         effectOverlay.style.backgroundImage = 'none';
 
                                         const introGif = `${effects.intro}?${new Date().getTime()}`;
@@ -297,18 +348,17 @@
 
                                             setTimeout(() => {
                                                 effectOverlay.style.backgroundImage = `url("${idleGif}")`;
-                                            }, 3100);
-                                        }, 50);
-                                    }
-                                });
+                                            }, 3150);
+                                        }, 150);
+                                    });
 
-                                modal.addEventListener('hidden.bs.modal', () => {
-                                    if (effectOverlay) {
+                                    modal.addEventListener('hidden.bs.modal', () => {
                                         effectOverlay.style.backgroundImage = 'none';
-                                    }
-                                });
+                                    });
+                                }
                             });
                         </script>
+
                     </div>
 
                 </div>

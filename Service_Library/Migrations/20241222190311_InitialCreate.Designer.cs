@@ -12,8 +12,8 @@ using Service_Library.Entities;
 namespace Service_Library.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241219144225_AddPublisherToBook")]
-    partial class AddPublisherToBook
+    [Migration("20241222190311_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -119,6 +119,12 @@ namespace Service_Library.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("ReservationExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ReservedForUserId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -210,6 +216,9 @@ namespace Service_Library.Migrations
 
                     b.Property<int>("BookId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("Notified")
+                        .HasColumnType("bit");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

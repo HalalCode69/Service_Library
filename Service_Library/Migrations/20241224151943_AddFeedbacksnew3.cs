@@ -5,14 +5,21 @@
 namespace Service_Library.Migrations
 {
     /// <inheritdoc />
-    public partial class AddPublisherToBook : Migration
+    public partial class AddFeedbacksnew3 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "Publisher",
-                table: "Books",
+                name: "FirstName",
+                table: "Feedbacks",
+                type: "nvarchar(max)",
+                nullable: false,
+                defaultValue: "");
+
+            migrationBuilder.AddColumn<string>(
+                name: "LastName",
+                table: "Feedbacks",
                 type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "");
@@ -22,8 +29,12 @@ namespace Service_Library.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Publisher",
-                table: "Books");
+                name: "FirstName",
+                table: "Feedbacks");
+
+            migrationBuilder.DropColumn(
+                name: "LastName",
+                table: "Feedbacks");
         }
     }
 }

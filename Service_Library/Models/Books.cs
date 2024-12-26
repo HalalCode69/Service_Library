@@ -22,12 +22,22 @@ namespace Service_Library.Models
         public int? ReservedForUserId { get; set; } // User ID for the reserved user
         public DateTime? ReservationExpiry { get; set; } // Reservation expiry time
         public bool IsOwnedByCurrentUser { get; set; }
+        public string AgeLimit { get; set; } // New property for age limitation
+        public List<Feedback> Feedbacks { get; set; } = new List<Feedback>(); // Initialize to an empty list
+        public int YearOfPublishing { get; set; } // New property for year of publishing
+        public double AverageRating { get; set; } = 0.0; // New property for average rating
+        public int RatingCount { get; set; } = 0; // New property for rating count
+        public int? UserRating { get; set; } // Nullable to indicate no rating
+        public bool UserHasPostedFeedback { get; set; }
+
+        [NotMapped] // Ensure it's not part of the database
+        public string UserComment { get; set; }
+
         [NotMapped] // Ensure this is not stored in the database
         public int EstimatedAvailabilityInDays { get; set; }
-        
+
         [NotMapped]
         public int ActiveBorrowCount { get; set; }
-
 
         [NotMapped]
         public bool IsReservedForCurrentUser { get; set; }
@@ -53,6 +63,5 @@ namespace Service_Library.Models
         public int UsersBeforeInWaitList { get; set; } // Users before this user in the waiting list
         [NotMapped]
         public int? BorrowTransactionId { get; set; }
-
     }
 }

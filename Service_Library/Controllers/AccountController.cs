@@ -71,12 +71,13 @@ namespace Service_Library.Controllers
                 {
                     // Add claims, including the NameIdentifier for the User ID
                     var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // User ID as NameIdentifier
-                        new Claim(ClaimTypes.Name, user.Email),                   // Email as Name
-                        new Claim("Name", user.FirstName),                        // User's First Name
-                        new Claim(ClaimTypes.Role, user.Role ?? "User")           // Role with fallback
-                    };
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // User ID as NameIdentifier
+                new Claim(ClaimTypes.Name, user.Email),                   // Email as Name
+                new Claim("FirstName", user.FirstName),                   // User's First Name
+                new Claim("LastName", user.LastName),                     // User's Last Name
+                new Claim(ClaimTypes.Role, user.Role ?? "User")           // Role with fallback
+            };
 
                     var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -94,6 +95,7 @@ namespace Service_Library.Controllers
             }
             return View(model);
         }
+
 
 
         public IActionResult Logout()

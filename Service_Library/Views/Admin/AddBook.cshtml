@@ -5,7 +5,7 @@
 }
 
 <h2>Add New Book</h2>
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="alert alert-danger">
@@ -19,19 +19,23 @@
     }
     <div class="form-group">
         <label for="Title">Title</label>
-        <input type="text" class="form-control" id="Title" name="Title" required />
+        <input type="text" class="form-control" id="Title" asp-for="Title" required />
     </div>
     <div class="form-group">
         <label for="Author">Author</label>
-        <input type="text" class="form-control" id="Author" name="Author" required />
+        <input type="text" class="form-control" id="Author" asp-for="Author" required />
     </div>
     <div class="form-group">
         <label for="Publisher">Publisher</label>
-        <input type="text" class="form-control" id="Publisher" name="Publisher" required />
+        <input type="text" class="form-control" id="Publisher" asp-for="Publisher" required />
+    </div>
+    <div class="form-group">
+        <label for="YearOfPublishing">Year of Publishing</label>
+        <input type="number" class="form-control" id="YearOfPublishing" asp-for="YearOfPublishing" min="0" required />
     </div>
     <div class="form-group">
         <label for="Format">File Format</label>
-        <select class="form-control" id="Format" name="Format" required>
+        <select class="form-control" id="Format" asp-for="Format" required>
             <option value="">-- Select Format --</option>
             <option value="PDF">PDF</option>
             <option value="EPUB">EPUB</option>
@@ -40,31 +44,34 @@
         </select>
     </div>
     <div class="form-group">
+        <label for="AgeLimit">Age Limit</label>
+        <input type="number" class="form-control" id="AgeLimit" asp-for="AgeLimit" min="0" value="0" />
+    </div>
+    <div class="form-group">
         <label for="BorrowPrice">Borrow Price</label>
-        <input type="number" class="form-control" id="BorrowPrice" name="BorrowPrice" step="0.01" min="0" required />
+        <input type="number" class="form-control" id="BorrowPrice" asp-for="BorrowPrice" step="0.01" min="0" required />
     </div>
     <div class="form-group">
         <label for="BuyPrice">Buy Price</label>
-        <input type="number" class="form-control" id="BuyPrice" name="BuyPrice" step="0.01" min="0" required />
+        <input type="number" class="form-control" id="BuyPrice" asp-for="BuyPrice" step="0.01" min="0" required />
     </div>
     <div class="form-group">
         <label for="AvailableCopies">Available Copies</label>
-        <input type="number" class="form-control" id="AvailableCopies" name="AvailableCopies" min="0" required />
+        <input type="number" class="form-control" id="AvailableCopies" asp-for="AvailableCopies" min="0" required />
     </div>
     <div class="form-group">
-        <label for="Categories">Categories</label>
-        <select class="form-control" id="Categories" name="Categories" multiple>
+        <label for="Category">Category</label>
+        <select class="form-control" asp-for="Category" asp-items="@(new SelectList(ViewBag.Categories))">
+            <option value="">-- Select Category --</option>
             @foreach (var category in ViewBag.Categories as IEnumerable<string>)
             {
                 <option value="@category">@category</option>
             }
         </select>
-        <small class="form-text text-muted">Hold Ctrl (or Cmd on Mac) to select multiple categories.</small>
     </div>
-
     <div class="form-group">
         <label for="IsBorrowable">Is Borrowable?</label>
-        <select class="form-control" id="IsBorrowable" name="IsBorrowable" required>
+        <select class="form-control" id="IsBorrowable" asp-for="IsBorrowable" required>
             <option value="true">Yes</option>
             <option value="false">No</option>
         </select>
@@ -75,3 +82,16 @@
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
+
+<script>
+    function validateForm() {
+        var borrowPrice = parseFloat(document.getElementById("BorrowPrice").value);
+        var buyPrice = parseFloat(document.getElementById("BuyPrice").value);
+
+        if (buyPrice <= borrowPrice) {
+            alert("Buy price must be higher than borrow price.");
+            return false;
+        }
+        return true;
+    }
+</script>

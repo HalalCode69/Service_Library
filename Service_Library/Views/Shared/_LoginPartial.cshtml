@@ -1,16 +1,53 @@
-﻿@if (Context.User.Identity.Name != null) { 
+﻿@{
+    var firstName = Context.User.Claims.FirstOrDefault(c => c.Type == "FirstName")?.Value;
+    var lastName = Context.User.Claims.FirstOrDefault(c => c.Type == "LastName")?.Value;
+}
+
+@if (Context.User.Identity.Name != null)
+{
     <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="navbar-right">
-        <ul class="nav navbar-nav navbar-right nav-link text-dark">
-            <li>                Hello @Context.User.Identity.Name!
-                <button type="submit" class="btn btn-link navbar-btn navbar-link ">Log out</button>
-            </li>      
-         </ul>
+        <ul class="nav navbar-nav navbar-right nav-link no-list-style">
+            <li class="d-flex align-items-center">
+                <span>Hello @firstName @lastName !</span>
+                <button type="submit" class="btn btn-link nav-link ms-2">Log out</button>
+            </li>
+        </ul>
     </form>
 }
 else
 {
-    <ul class"nav navbar-nav navbar-right">
-        <li><a class="nav-link text-dark" asp-controller="Account" asp-action="Registration">Register</a></li>
-        <li><a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Log in</a></li>
+    <ul class="nav navbar-nav navbar-right nav-link no-list-style">
+        <li><a class="nav-link" asp-controller="Account" asp-action="Registration">Register</a></li>
+        <li><a class="nav-link" asp-controller="Account" asp-action="Login">Log in</a></li>
     </ul>
 }
+
+<style>
+    .no-list-style {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .nav-link {
+        color: var(--navbar-link-color);
+        transition: color 0.3s;
+    }
+
+        .nav-link:hover {
+            color: var(--navbar-link-hover-color);
+            text-shadow: 0 0 5px var(--navbar-link-hover-color);
+        }
+
+    .d-flex {
+        display: flex;
+    }
+
+    .align-items-center {
+        align-items: center;
+    }
+
+    .ms-2 {
+        margin-left: 0.5rem;
+    }
+</style>

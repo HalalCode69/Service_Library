@@ -14,6 +14,9 @@ namespace Service_Library.Entities
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<WebsiteIcon> WebsiteIcons { get; set; }
         public DbSet<BorrowTransaction> BorrowTransactions { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<UserRating> UserRatings { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
            base.OnModelCreating(modelBuilder);

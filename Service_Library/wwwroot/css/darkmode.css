@@ -1,0 +1,76 @@
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.navbar-dark-mode {
+    background-color: #333333;
+    border-color: #444444;
+}
+
+    .navbar-dark-mode .nav-link {
+        color: #ffffff;
+    }
+
+.card-dark-mode {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border-color: #444444;
+}
+
+.book-card.card-dark-mode {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border-color: #444444;
+}
+
+.modal-content-dark-mode {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border-color: #444444;
+}
+
+.modal-header-dark-mode {
+    background-color: #333333;
+    border-color: #444444;
+}
+
+.modal-body-dark-mode {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+.modal-footer-dark-mode {
+    background-color: #333333;
+    border-color: #444444;
+}
+
+.book-price-dark-mode {
+    color: #ffffff;
+}
+
+.display-rating-dark-mode span {
+    color: #ffffff;
+}
+
+.form-control-dark-mode {
+    background-color: #333333;
+    color: #ffffff;
+    border-color: #444444;
+}
+
+.text-muted-dark-mode {
+    color: #bbbbbb;
+}
+
+.text-warning-dark-mode {
+    color: #ffc107;
+}
+
+.text-info-dark-mode {
+    color: #17a2b8;
+}
+
+.navbar-nav-dark-mode .nav-link {
+    color: #ffffff;
+}

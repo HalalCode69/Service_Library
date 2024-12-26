@@ -12,8 +12,8 @@ using Service_Library.Entities;
 namespace Service_Library.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241216214125_AddCategoryToBooks")]
-    partial class AddCategoryToBooks
+    [Migration("20241222191740_AddAgeLimitAndFeedback")]
+    partial class AddAgeLimitAndFeedback
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -73,6 +73,10 @@ namespace Service_Library.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookId"));
 
+                    b.Property<string>("AgeLimit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Author")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -82,6 +86,9 @@ namespace Service_Library.Migrations
 
                     b.Property<decimal>("BorrowPrice")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BorrowedCopies")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("BuyPrice")
                         .HasColumnType("decimal(18,2)");
@@ -93,12 +100,34 @@ namespace Service_Library.Migrations
                     b.Property<byte[]>("CoverImage")
                         .HasColumnType("varbinary(max)");
 
+                    b.Property<DateTime?>("DiscountEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("DiscountPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Format")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsBorrowable")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsOwnedByCurrentUser")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("PreviousBuyPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Publisher")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReservationExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ReservedForUserId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -107,6 +136,73 @@ namespace Service_Library.Migrations
                     b.HasKey("BookId");
 
                     b.ToTable("Books");
+                });
+
+            modelBuilder.Entity("Service_Library.Models.BorrowTransaction", b =>
+                {
+                    b.Property<int>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionId"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BorrowDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsReturned")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ReminderSent")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("ReturnDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("TransactionId");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("BorrowTransactions");
+                });
+
+            modelBuilder.Entity("Service_Library.Models.Feedback", b =>
+                {
+                    b.Property<int>("FeedbackId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeedbackId"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("FeedbackId");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("Service_Library.Models.Transaction", b =>
@@ -151,11 +247,14 @@ namespace Service_Library.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WaitingListId"));
 
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("BookId")
                         .HasColumnType("int");
 
-                    b.Property<int>("QueuePosition")
-                        .HasColumnType("int");
+                    b.Property<bool>("Notified")
+                        .HasColumnType("bit");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -167,6 +266,59 @@ namespace Service_Library.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("WaitingList");
+                });
+
+            modelBuilder.Entity("Service_Library.Models.WebsiteIcon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("IconData")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WebsiteIcons");
+                });
+
+            modelBuilder.Entity("Service_Library.Models.BorrowTransaction", b =>
+                {
+                    b.HasOne("Service_Library.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Service_Library.Entities.UserAccount", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Service_Library.Models.Feedback", b =>
+                {
+                    b.HasOne("Service_Library.Models.Book", null)
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Service_Library.Models.Transaction", b =>
@@ -205,6 +357,11 @@ namespace Service_Library.Migrations
                     b.Navigation("Book");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Service_Library.Models.Book", b =>
+                {
+                    b.Navigation("Feedbacks");
                 });
 #pragma warning restore 612, 618
         }
