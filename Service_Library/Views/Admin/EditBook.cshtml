@@ -20,31 +20,53 @@
     }
     <div class="form-group">
         <label for="Title">Title</label>
-        <input type="text" class="form-control" id="Title" asp-for="Title" />
+        <input type="text" class="form-control" id="Title" asp-for="Title" required />
     </div>
     <div class="form-group">
         <label for="Author">Author</label>
-        <input type="text" class="form-control" id="Author" asp-for="Author" />
+        <input type="text" class="form-control" id="Author" asp-for="Author" required />
     </div>
     <div class="form-group">
         <label for="Publisher">Publisher</label>
-        <input type="text" class="form-control" id="Publisher" asp-for="Publisher" />
+        <input type="text" class="form-control" id="Publisher" asp-for="Publisher" required />
     </div>
     <div class="form-group">
-        <label for="Format">Format</label>
-        <input type="text" class="form-control" id="Format" asp-for="Format" />
+        <label for="YearOfPublishing">Year of Publishing</label>
+        <input type="number" class="form-control" id="YearOfPublishing" asp-for="YearOfPublishing" min="0" required />
+    </div>
+    <div class="form-group">
+        <label for="Format">File Format</label>
+        <select class="form-control" id="Format" asp-for="Format" required>
+            <option value="">-- Select Format --</option>
+            <option value="PDF">PDF</option>
+            <option value="EPUB">EPUB</option>
+            <option value="MOBI">MOBI</option>
+            <option value="FB2">FB2</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="AgeLimit">Age Limit</label>
+        <input type="number" class="form-control" id="AgeLimit" asp-for="AgeLimit" min="0" value="0" />
     </div>
     <div class="form-group">
         <label for="BorrowPrice">Borrow Price</label>
-        <input type="number" class="form-control" id="BorrowPrice" asp-for="BorrowPrice" />
+        <input type="number" class="form-control" id="BorrowPrice" asp-for="BorrowPrice" step="0.01" min="0" required />
     </div>
     <div class="form-group">
         <label for="BuyPrice">Buy Price</label>
-        <input type="number" class="form-control" id="BuyPrice" asp-for="BuyPrice" />
+        <input type="number" class="form-control" id="BuyPrice" asp-for="BuyPrice" step="0.01" min="0" required />
+    </div>
+    <div class="form-group">
+        <label for="DiscountPrice">Discount Price</label>
+        <input type="number" class="form-control" id="DiscountPrice" asp-for="DiscountPrice" step="0.01" min="0" />
+    </div>
+    <div class="form-group">
+        <label for="DiscountEndDate">Discount End Date</label>
+        <input type="date" class="form-control" id="DiscountEndDate" asp-for="DiscountEndDate" />
     </div>
     <div class="form-group">
         <label for="AvailableCopies">Available Copies</label>
-        <input type="number" class="form-control" id="AvailableCopies" asp-for="AvailableCopies" />
+        <input type="number" class="form-control" id="AvailableCopies" asp-for="AvailableCopies" min="0" required />
     </div>
     <div class="form-group">
         <label for="Category">Category</label>
@@ -53,29 +75,23 @@
         </select>
     </div>
     <div class="form-group">
-        <label for="IsBorrowable">Is Borrowable</label>
-        <input type="checkbox" id="IsBorrowable" asp-for="IsBorrowable" />
+        <label for="IsBorrowable">Is Borrowable?</label>
+        <select class="form-control" id="IsBorrowable" asp-for="IsBorrowable" required>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+        </select>
     </div>
     <div class="form-group">
         <label for="CoverImage">Cover Image</label>
         <input type="file" class="form-control-file" id="CoverImage" name="CoverImage" accept="image/*" />
     </div>
     <div class="form-group">
-        <label for="AgeLimit">Age Limit</label>
-        <input type="number" class="form-control" id="AgeLimit" asp-for="AgeLimit" min="0" value="0" />
-    </div>
-    <div class="form-group">
-        <label for="YearOfPublishing">Year of Publishing</label>
-        <input type="number" class="form-control" id="YearOfPublishing" asp-for="YearOfPublishing" min="0" required />
-    </div>
-    <!-- Discount Section -->
-    <div class="form-group">
-        <label>Discount Price (Optional):</label>
-        <input asp-for="DiscountPrice" class="form-control" type="number" step="0.01" />
-    </div>
-    <div class="form-group">
-        <label>Discount End Date:</label>
-        <input asp-for="DiscountEndDate" class="form-control" type="date" />
+        <label for="BookContent">Book Content</label>
+        <input type="file" class="form-control-file" id="BookContent" name="BookContent" accept=".pdf,.epub,.mobi,.fb2" onchange="validateFileFormat()" />
+        @if (Model.BookContent != null)
+        {
+            <p>Current File: @Model.Title.@Model.Format.ToLower()</p>
+        }
     </div>
     <!-- Current Cover Image Preview -->
     <div class="form-group">
@@ -105,7 +121,7 @@
     <button type="submit" class="btn btn-primary">Save Changes</button>
 </form>
 
-<!-- JavaScript to Preview New Image -->
+<!-- JavaScript to Preview New Image and Validate File Format -->
 <script>
     function previewImage(event) {
         const file = event.target.files[0];
@@ -122,14 +138,43 @@
         }
     }
 
+    function validateFileFormat() {
+        const fileInput = document.getElementById('BookContent');
+        const file = fileInput.files[0];
+        const format = document.getElementById('Format').value.toLowerCase();
+
+        if (file) {
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (fileExtension !== format) {
+                alert(`Selected file format (${fileExtension}) does not match the chosen format (${format}).`);
+                fileInput.value = ''; // Clear the file input
+            }
+        }
+    }
+
     function validateForm() {
         var borrowPrice = parseFloat(document.getElementById("BorrowPrice").value);
         var buyPrice = parseFloat(document.getElementById("BuyPrice").value);
+        var discountPrice = parseFloat(document.getElementById("DiscountPrice").value);
+        var discountEndDate = new Date(document.getElementById("DiscountEndDate").value);
+        var maxDiscountEndDate = new Date();
+        maxDiscountEndDate.setDate(maxDiscountEndDate.getDate() + 7);
 
         if (buyPrice <= borrowPrice) {
             alert("Buy price must be higher than borrow price.");
             return false;
         }
+
+        if (discountPrice >= buyPrice) {
+            alert("Discount price must be lower than buy price.");
+            return false;
+        }
+
+        if (discountEndDate > maxDiscountEndDate) {
+            alert("Discount end date cannot be more than one week from today.");
+            return false;
+        }
+
         return true;
     }
 </script>

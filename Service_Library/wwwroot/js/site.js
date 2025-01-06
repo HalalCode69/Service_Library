@@ -1,50 +1,106 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
     initializeEventListeners();
+
+    // Ensure books are moved down if filter panel is already open
+    const filterPanel = document.getElementById('filterPanel');
+    const bookContainer = document.querySelector('.book-container');
+
+    if (filterPanel.style.display === 'block') {
+        bookContainer.style.marginTop = `${filterPanel.offsetHeight + 20}px`;
+    }
+
+    // Initialize price range slider
+    var priceRangeSlider = document.getElementById('priceRangeSlider');
+    var minPrice = parseFloat(document.getElementById('priceRangeMin').getAttribute('data-min-price'));
+    var maxPrice = parseFloat(document.getElementById('priceRangeMax').getAttribute('data-max-price'));
+    var startMin = parseFloat(document.getElementById('priceRangeMin').value) || minPrice;
+    var startMax = parseFloat(document.getElementById('priceRangeMax').value) || maxPrice;
+
+    noUiSlider.create(priceRangeSlider, {
+        start: [startMin, startMax],
+        connect: true,
+        range: {
+            'min': minPrice,
+            'max': maxPrice
+        },
+        tooltips: [true, true],
+        format: {
+            to: function (value) {
+                return value.toFixed(2);
+            },
+            from: function (value) {
+                return Number(value);
+            }
+        }
+    });
+
+    priceRangeSlider.noUiSlider.on('update', function (values, handle) {
+        document.getElementById('priceRangeMin').value = values[0];
+        document.getElementById('priceRangeMax').value = values[1];
+        document.getElementById('priceRangeMinLabel').innerText = '$' + values[0];
+        document.getElementById('priceRangeMaxLabel').innerText = '$' + values[1];
+    });
 });
 
 function initializeEventListeners() {
     // Borrow button event listeners
     document.querySelectorAll(".borrow-button").forEach(button => {
-        button.removeEventListener("click", handleBorrow); // Remove previous event listener
-        button.addEventListener("click", handleBorrow); // Add new event listener
+        button.removeEventListener("click", handleBorrow);
+        button.addEventListener("click", handleBorrow);
     });
 
     // Buy button event listeners
     document.querySelectorAll(".buy-button").forEach(button => {
-        button.removeEventListener("click", handleBuy); // Remove previous event listener
-        button.addEventListener("click", handleBuy); // Add new event listener
+        button.removeEventListener("click", handleBuy);
+        button.addEventListener("click", handleBuy);
     });
 
     // Delete button event listeners
     document.querySelectorAll(".delete-button").forEach(button => {
-        button.removeEventListener("click", handleDelete); // Remove previous event listener
-        button.addEventListener("click", handleDelete); // Add new event listener
+        button.removeEventListener("click", handleDelete);
+        button.addEventListener("click", handleDelete);
     });
 
     // Return button event listeners
     document.querySelectorAll(".return-button").forEach(button => {
-        button.removeEventListener("click", handleReturn); // Remove previous event listener
-        button.addEventListener("click", handleReturn); // Add new event listener
+        button.removeEventListener("click", handleReturn);
+        button.addEventListener("click", handleReturn);
     });
 
     // Join waiting list button event listeners
     document.querySelectorAll(".join-waiting-list-button").forEach(button => {
-        button.removeEventListener("click", handleJoinWaitingList); // Remove previous event listener
-        button.addEventListener("click", handleJoinWaitingList); // Add new event listener
+        button.removeEventListener("click", handleJoinWaitingList);
+        button.addEventListener("click", handleJoinWaitingList);
     });
 
     // Leave waiting list button event listeners
     document.querySelectorAll(".leave-waiting-list-button").forEach(button => {
-        button.removeEventListener("click", handleLeaveWaitingList); // Remove previous event listener
-        button.addEventListener("click", handleLeaveWaitingList); // Add new event listener
+        button.removeEventListener("click", handleLeaveWaitingList);
+        button.addEventListener("click", handleLeaveWaitingList);
     });
 
     // Release reservation button event listeners
     document.querySelectorAll(".release-reservation-button").forEach(button => {
-        button.removeEventListener("click", handleReleaseReservation); // Remove old listeners
-        button.addEventListener("click", handleReleaseReservation);   // Add new listener
+        button.removeEventListener("click", handleReleaseReservation);
+        button.addEventListener("click", handleReleaseReservation);
+    });
+    // Add to Cart button event listeners
+    document.querySelectorAll(".add-to-cart-button").forEach(button => {
+        button.removeEventListener("click", handleAddToCart);
+        button.addEventListener("click", handleAddToCart);
     });
 
+    // Remove from Cart button event listeners
+    document.querySelectorAll(".remove-from-cart-button").forEach(button => {
+        button.removeEventListener("click", handleRemoveFromCart);
+        button.addEventListener("click", handleRemoveFromCart);
+    });
+
+    // Clear Cart button event listeners
+    document.querySelectorAll(".clear-cart-button").forEach(button => {
+        button.removeEventListener("click", handleClearCart);
+        button.addEventListener("click", handleClearCart);
+    });
     // Feedback submit button(s)
     document.querySelectorAll(".submit-feedback-button").forEach(button => {
         button.removeEventListener("click", handleFeedbackSubmit);
@@ -54,24 +110,218 @@ function initializeEventListeners() {
     // Star rating hovers/clicks
     document.querySelectorAll(".star-rating").forEach(ratingDiv => {
         const stars = ratingDiv.querySelectorAll(".star");
-        // Remove old listeners, then add new
         stars.forEach(star => {
             star.removeEventListener("mouseover", handleStarMouseOver);
-            star.removeEventListener("click", handleStarClick);
-
             star.addEventListener("mouseover", handleStarMouseOver);
+
+            star.removeEventListener("click", handleStarClick);
             star.addEventListener("click", handleStarClick);
         });
 
-        // Reset highlight on mouseout
         ratingDiv.removeEventListener("mouseout", resetStarHighlight);
         ratingDiv.addEventListener("mouseout", resetStarHighlight);
     });
+
+    // Filter Panel Toggle
+    const filterToggle = document.getElementById("filterToggle");
+    if (filterToggle) {
+        filterToggle.removeEventListener("click", toggleFilter);
+        filterToggle.addEventListener("click", toggleFilter);
+    }
+
+    // Apply Filters Button
+    const applyFiltersButton = document.querySelector("#filterPanel .btn-success");
+    if (applyFiltersButton) {
+        applyFiltersButton.removeEventListener("click", applyFilters);
+        applyFiltersButton.addEventListener("click", applyFilters);
+    }
+}
+// Handle Add to Cart
+function handleAddToCart(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const bookId = button.getAttribute("data-book-id");
+    const title = button.getAttribute("data-book-title"); // Ensure this attribute is set
+    const price = button.getAttribute("data-book-price"); // Ensure this attribute is set
+
+    fetch(`/ShoppingCart/Add`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ bookId: parseInt(bookId), title: title, price: parseFloat(price) })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error adding to cart:", error);
+            alert("An error occurred while adding to the cart.");
+        });
+}
+
+
+// Handle Remove from Cart
+function handleRemoveFromCart(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const bookId = button.getAttribute("data-book-id");
+
+    fetch(`/ShoppingCart/Remove`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ bookId: parseInt(bookId) })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload(); // Reload the page to update the cart
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error removing from cart:", error);
+            alert("An error occurred while removing from the cart.");
+        });
+}
+
+// Handle Clear Cart
+function handleClearCart(event) {
+    event.preventDefault();
+
+    fetch(`/ShoppingCart/Clear`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error clearing cart:", error);
+            alert("An error occurred while clearing the cart.");
+        });
+}
+// Toggle Filter Panel and Move Books Down
+function toggleFilter() {
+    const filterPanel = document.getElementById('filterPanel');
+    const bookContainer = document.querySelector('.book-container');
+
+    if (!filterPanel) {
+        console.error("Filter panel not found!");
+        return;
+    }
+
+    console.log("Toggling filter panel...");
+    if (filterPanel.style.display === 'none' || !filterPanel.style.display) {
+        filterPanel.style.display = 'block';
+        bookContainer.style.marginTop = `${filterPanel.offsetHeight + 20}px`;
+
+        // Apply dark mode if enabled
+        if (document.body.classList.contains('dark-mode')) {
+            filterPanel.classList.add('dark-mode');
+        }
+    } else {
+        filterPanel.style.display = 'none';
+        bookContainer.style.marginTop = '0';
+    }
+}
+
+// Apply Filters Function
+function applyFilters() {
+    const url = new URL(window.location.href);
+    const category = document.getElementById('categoryDropdown').value;
+    const author = document.getElementById('authorDropdown').value;
+    const sort = document.getElementById('sortDropdown').value;
+    const availability = document.getElementById('buyBorrowDropdown').value;
+    const priceRangeMin = document.getElementById('priceRangeMin').value;
+    const priceRangeMax = document.getElementById('priceRangeMax').value;
+    const onSale = document.getElementById('onSaleCheckbox').checked;
+
+    if (category) url.searchParams.set('categoryFilter', category);
+    else url.searchParams.delete('categoryFilter');
+
+    if (author) url.searchParams.set('authorFilter', author);
+    else url.searchParams.delete('authorFilter');
+
+    if (sort) url.searchParams.set('sort', sort);
+    else url.searchParams.delete('sort');
+
+    if (availability) url.searchParams.set('availability', availability);
+    else url.searchParams.delete('availability');
+
+    if (priceRangeMin) url.searchParams.set('priceRangeMin', priceRangeMin);
+    else url.searchParams.delete('priceRangeMin');
+
+    if (priceRangeMax) url.searchParams.set('priceRangeMax', priceRangeMax);
+    else url.searchParams.delete('priceRangeMax');
+
+    if (onSale) url.searchParams.set('onSale', 'true');
+    else url.searchParams.delete('onSale');
+
+    window.location.href = url.toString();
+}
+
+// JavaScript function for sorting books
+function sortBooks(sortOption) {
+    const url = new URL(window.location.href);
+    if (sortOption) {
+        url.searchParams.set('sort', sortOption); // Update or add the `sort` query parameter
+    } else {
+        url.searchParams.delete('sort'); // Remove the `sort` query parameter
+    }
+    window.location.href = url.toString(); // Redirect to the updated URL
+}
+
+// JavaScript function for filtering by category
+function filterByCategory(category) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('categoryFilter', decodeURIComponent(category)); // Update or add the `categoryFilter` query parameter
+    url.searchParams.delete('search'); // Optional: Clear the search query when changing the category
+    window.location.href = url.toString(); // Redirect to the updated URL
+}
+
+// JavaScript function for filtering by author
+function filterByAuthor(author) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('authorFilter', decodeURIComponent(author)); // Update or add the `authorFilter` query parameter
+    url.searchParams.delete('search'); // Optional: Clear the search query when changing the author
+    window.location.href = url.toString(); // Redirect to the updated URL
+}
+
+// JavaScript function for filtering by availability
+function filterByAvailability(availability) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('availability', decodeURIComponent(availability)); // Update or add the `availability` query parameter
+    url.searchParams.delete('search'); // Optional: Clear the search query when changing the availability
+    window.location.href = url.toString(); // Redirect to the updated URL
 }
 
 
 
-// Borrow Book Handler
+
+
+
+
+
 // Borrow Book Handler
 function handleBorrow(event) {
     event.preventDefault();
@@ -110,22 +360,23 @@ function handleBorrow(event) {
                 const returnTimestamp = new Date(data.returnTimestamp);
 
                 buttonContainer.innerHTML = `
-                    <p class="text-success"><strong>Borrowed:</strong> <span id="remaining-time-${bookId}"></span></p>
-                    <button class="btn btn-danger return-button" data-transaction-id="${data.transactionId}" data-book-id="${bookId}">Return Book</button>
-                    <button class="btn btn-primary buy-button mt-2" data-book-id="${bookId}">Buy Now</button>
-                    <div class="your-feedback mt-3">
-                        <h6>Your Feedback</h6>
-                        <div class="star-rating" data-book-id="${bookId}" data-selected-rating="0">
-                            <span class="star" data-value="1">&#9733;</span>
-                            <span class="star" data-value="2">&#9733;</span>
-                            <span class="star" data-value="3">&#9733;</span>
-                            <span class="star" data-value="4">&#9733;</span>
-                            <span class="star" data-value="5">&#9733;</span>
-                        </div>
-                        <textarea id="feedback-comment-${bookId}" class="form-control mt-2" rows="3" placeholder="Leave your comment here..."></textarea>
-                        <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="${bookId}">Submit Feedback</button>
+                <p class="text-success"><strong>Borrowed:</strong> <span id="remaining-time-${bookId}"></span></p>
+                <button class="btn btn-danger return-button" data-transaction-id="${data.transactionId}" data-book-id="${bookId}">Return Book</button>
+                <button class="btn btn-primary buy-button mt-2" data-book-id="${bookId}">Buy Now</button>
+                <button class="btn btn-primary download-button mt-2" data-book-id="${bookId}">Download</button>
+                <div class="your-feedback mt-3">
+                    <h6>Your Feedback</h6>
+                    <div class="star-rating" data-book-id="${bookId}" data-selected-rating="0">
+                        <span class="star" data-value="1">&#9733;</span>
+                        <span class="star" data-value="2">&#9733;</span>
+                        <span class="star" data-value="3">&#9733;</span>
+                        <span class="star" data-value="4">&#9733;</span>
+                        <span class="star" data-value="5">&#9733;</span>
                     </div>
-                `;
+                    <textarea id="feedback-comment-${bookId}" class="form-control mt-2" rows="3" placeholder="Leave your comment here..."></textarea>
+                    <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="${bookId}">Submit Feedback</button>
+                </div>
+            `;
 
                 // Start the countdown timer
                 startCountdown(`remaining-time-${bookId}`, returnTimestamp);
@@ -149,6 +400,8 @@ function handleBorrow(event) {
         });
 }
 
+
+
 // Buy Book Handler
 function handleBuy(event) {
     event.preventDefault();
@@ -166,7 +419,7 @@ function handleBuy(event) {
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest"
         },
-        body: JSON.stringify({ bookId })
+        body: JSON.stringify({ bookId: parseInt(bookId) })
     })
         .then(response => {
             if (!response.ok) {
@@ -183,20 +436,21 @@ function handleBuy(event) {
 
                 const buttonContainer = document.querySelector(`#button-container-${bookId}`);
                 buttonContainer.innerHTML = `
-                    <p class="text-success"><strong>You own this book!</strong></p>
-                    <div class="your-feedback mt-3">
-                        <h6>Your Feedback</h6>
-                        <div class="star-rating" data-book-id="${bookId}" data-selected-rating="0">
-                            <span class="star" data-value="1">&#9733;</span>
-                            <span class="star" data-value="2">&#9733;</span>
-                            <span class="star" data-value="3">&#9733;</span>
-                            <span class="star" data-value="4">&#9733;</span>
-                            <span class="star" data-value="5">&#9733;</span>
-                        </div>
-                        <textarea id="feedback-comment-${bookId}" class="form-control mt-2" rows="3" placeholder="Leave your comment here..."></textarea>
-                        <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="${bookId}">Submit Feedback</button>
+                <p class="text-success"><strong>You own this book!</strong></p>
+                <button class="btn btn-primary download-button mt-2" data-book-id="${bookId}">Download</button>
+                <div class="your-feedback mt-3">
+                    <h6>Your Feedback</h6>
+                    <div class="star-rating" data-book-id="${bookId}" data-selected-rating="0">
+                        <span class="star" data-value="1">&#9733;</span>
+                        <span class="star" data-value="2">&#9733;</span>
+                        <span class="star" data-value="3">&#9733;</span>
+                        <span class="star" data-value="4">&#9733;</span>
+                        <span class="star" data-value="5">&#9733;</span>
                     </div>
-                `;
+                    <textarea id="feedback-comment-${bookId}" class="form-control mt-2" rows="3" placeholder="Leave your comment here..."></textarea>
+                    <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="${bookId}">Submit Feedback</button>
+                </div>
+            `;
 
                 // Reinitialize event listeners for new buttons and feedback
                 initializeEventListeners();
@@ -213,6 +467,59 @@ function handleBuy(event) {
             }
         });
 }
+
+
+
+function handleDownload(event) {
+    event.preventDefault();
+
+    const button = event.currentTarget;
+    const bookId = button.getAttribute("data-book-id");
+
+    // Assuming the download URL is `/Books/DownloadBook`
+    const downloadUrl = `/Books/DownloadBook?bookId=${bookId}`;
+
+    fetch(downloadUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const contentDisposition = response.headers.get("Content-Disposition");
+            let filename = "downloaded_file";
+            if (contentDisposition && contentDisposition.indexOf("attachment") !== -1) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+            return response.blob().then(blob => ({ blob, filename }));
+        })
+        .then(({ blob, filename }) => {
+            const url = window.URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = filename; // Set the filename
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            console.error("Error downloading book:", error);
+            alert("An error occurred while downloading the book.");
+        });
+}
+
+
+
+
+
 
 
 

@@ -100,6 +100,18 @@
     transition: background-image 0.3s ease-in-out; /* Smooth transition */
 }
 
+.age-limit-badge {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: rgba(204, 70, 0, 0.85);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    z-index: 1;
+}
 
 .img-fluid {
     background-size: cover;
@@ -309,4 +321,26 @@ body.dark-mode .book-info {
     .book-cover {
         height: 120px;
     }
+}
+#filterPanel {
+    display: none;
+}
+
+
+.book-container {
+    transition: margin-top 0.3s ease;
+}
+
+/* Custom styles for the price range slider */
+#priceRangeSlider {
+    margin-top: 40px; /* Add space above the slider */
+    margin-inline: 50px; /* Add space above the slider */
+    width: 90%; /* Adjust the width as needed */
+    height: 20px; /* Adjust the height as needed */
+}
+
+.noUi-handle {
+    width: 20px; /* Adjust the handle width as needed */
+    height: 20px; /* Adjust the handle height as needed */
+    top: -6px; /* Adjust the handle position as needed */
 }

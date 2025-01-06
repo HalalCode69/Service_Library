@@ -1,5 +1,6 @@
 ﻿/* Apply the background gradient to html and body */
 html, body {
+    transition: background-color 0.3s ease, color 0.3s ease;
     margin: 0;
     padding: 0;
     min-height: 100vh; /* Ensures both html and body expand to at least the viewport height */
@@ -18,25 +19,25 @@ html, body {
     background-attachment: fixed; /* Keeps the gradient fixed while scrolling */
 }
 
-    /* Dark mode background gradient */
-    html.dark-mode, body.dark-mode {
-        margin: 0;
-        padding: 0;
-        min-height: 100vh; /* Ensures both html and body expand to at least the viewport height */
-        background: linear-gradient(-45deg, #2c3e50 0%, /* Dark blue */
-        #4b79a1 12%, /* Darker blue */
-        #283048 25%, /* Dark gray */
-        #1e3c72 37%, /* Dark blue */
-        #2a5298 50%, /* Darker blue */
-        #1c2833 62%, /* Dark gray */
-        #34495e 75%, /* Dark blue */
-        #2c3e50 87%, /* Dark blue */
-        #1c2833 100% /* Dark gray */
-        );
-        background-size: 800% 800%;
-        animation: gradient 40s ease infinite;
-        background-attachment: fixed; /* Keeps the gradient fixed while scrolling */
-    }
+/* Dark mode background gradient */
+html.dark-mode, body.dark-mode {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh; /* Ensures both html and body expand to at least the viewport height */
+    background: linear-gradient(-45deg, #2c3e50 0%, /* Dark blue */
+    #4b79a1 12%, /* Darker blue */
+    #283048 25%, /* Dark gray */
+    #1e3c72 37%, /* Dark blue */
+    #2a5298 50%, /* Darker blue */
+    #1c2833 62%, /* Dark gray */
+    #34495e 75%, /* Dark blue */
+    #2c3e50 87%, /* Dark blue */
+    #1c2833 100% /* Dark gray */
+    );
+    background-size: 800% 800%;
+    animation: gradient 40s ease infinite;
+    background-attachment: fixed; /* Keeps the gradient fixed while scrolling */
+}
 
 /* Keyframes for animated gradient */
 @keyframes gradient {
@@ -200,7 +201,7 @@ body.dark-mode .book-info {
     background-color: #333;
 }
 
-    .toggle-checkbox:checked + .toggle .toggle-slider {
-        transform: translateX(30px); /* Move the slider to the right */
-        background-color: #ffcc00; /* Change the slider color for dark mode */
-    }
+.toggle-checkbox:checked + .toggle .toggle-slider {
+    transform: translateX(30px); /* Move the slider to the right */
+    background-color: #ffcc00; /* Change the slider color for dark mode */
+}

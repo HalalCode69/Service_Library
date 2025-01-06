@@ -2,8 +2,8 @@
     const darkModeSwitch = document.getElementById('darkModeSwitch');
     const body = document.body;
     const navbar = document.querySelector('.navbar');
+    const filterPanel = document.getElementById('filterPanel');
 
-    // List of class mappings for dark mode
     const classMappings = {
         'book-card': 'card-dark-mode',
         'modal-content': 'modal-content-dark-mode',
@@ -16,13 +16,21 @@
         'text-muted': 'text-muted-dark-mode',
         'text-warning': 'text-warning-dark-mode',
         'text-info': 'text-info-dark-mode',
-        'navbar-nav': 'navbar-nav-dark-mode'
+        'navbar-nav': 'navbar-nav-dark-mode',
+        'btn': 'btn-dark-mode',
     };
 
-    // Function to apply dark mode
+    // Apply Dark Mode
     function applyDarkMode() {
         body.classList.add('dark-mode');
         navbar.classList.add('navbar-dark-mode');
+
+        if (filterPanel) {
+            filterPanel.classList.remove('bg-light'); // Remove light mode background
+            filterPanel.classList.add('bg-dark'); // Add dark mode background
+            filterPanel.classList.add('dark-mode'); // Additional dark mode class for styling
+        }
+
         for (const [originalClass, darkModeClass] of Object.entries(classMappings)) {
             document.querySelectorAll(`.${originalClass}`).forEach(element => {
                 element.classList.add(darkModeClass);
@@ -30,10 +38,17 @@
         }
     }
 
-    // Function to remove dark mode
+    // Remove Dark Mode
     function removeDarkMode() {
         body.classList.remove('dark-mode');
         navbar.classList.remove('navbar-dark-mode');
+
+        if (filterPanel) {
+            filterPanel.classList.remove('bg-dark'); // Remove dark mode background
+            filterPanel.classList.add('bg-light'); // Restore light mode background
+            filterPanel.classList.remove('dark-mode'); // Remove dark mode class
+        }
+
         for (const [originalClass, darkModeClass] of Object.entries(classMappings)) {
             document.querySelectorAll(`.${originalClass}`).forEach(element => {
                 element.classList.remove(darkModeClass);
@@ -41,7 +56,7 @@
         }
     }
 
-    // Check if dark mode is enabled in local storage
+    // Initialize Dark Mode Based on Local Storage
     if (localStorage.getItem('darkMode') === 'enabled') {
         applyDarkMode();
         darkModeSwitch.checked = true;

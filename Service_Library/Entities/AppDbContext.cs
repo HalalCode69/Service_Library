@@ -16,6 +16,9 @@ namespace Service_Library.Entities
         public DbSet<BorrowTransaction> BorrowTransactions { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<UserRating> UserRatings { get; set; }
+        public DbSet<BookReservation> BookReservations { get; set; } // Add this line
+        public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

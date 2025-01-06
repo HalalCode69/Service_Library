@@ -3,27 +3,96 @@
 <!-- Page Header -->
 <h1 class="mb-4 library-header">My Library</h1>
 <!-- Filter Button -->
-<div class="dropdown position-absolute top-10 end-0 me-3 mt-3">
-    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        Categories
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end wide-dropdown" aria-labelledby="filterDropdown" style="max-height: 200px; overflow-y: auto;">
-        <li>
-            <label class="dropdown-item">
-                <input type="radio" name="categoryFilter" value="" @(string.IsNullOrEmpty(ViewContext.HttpContext.Request.Query["categoryFilter"]) ? "checked" : "") onchange="filterByCategory('')"> All Categories
-            </label>
-        </li>
-        @foreach (var category in ViewBag.Categories as IEnumerable<string>)
-        {
-            <li>
-                <label class="dropdown-item">
-                    <input type="radio" name="categoryFilter" value="@category" @(ViewContext.HttpContext.Request.Query["categoryFilter"] == category ? "checked" : "") onchange="filterByCategory('@Uri.EscapeDataString(category)')">
-                    @category
-                </label>
-            </li>
-        }
-    </ul>
+<div class="position-relative mb-3">
+    <button class="btn btn-primary" id="filterToggle">Filter</button>
+    <div id="filterPanel" class="p-3 bg-light border rounded position-absolute top-100 w-100 shadow">
+        <!-- Categories Dropdown -->
+        <div class="mb-3">
+            <label for="categoryDropdown" class="form-label">Category</label>
+            <select id="categoryDropdown" class="form-select">
+                <option value="">All Categories</option>
+                @foreach (var category in ViewBag.Categories as IEnumerable<string>)
+                {
+                    var isSelected = ViewContext.HttpContext.Request.Query["categoryFilter"] == category ? "selected" : "";
+                    @: <option value="@category" @isSelected>@category</option>
+                }
+            </select>
+        </div>
+
+        <!-- Authors Dropdown -->
+        <div class="mb-3">
+            <label for="authorDropdown" class="form-label">Author</label>
+            <select id="authorDropdown" class="form-select">
+                <option value="">All Authors</option>
+                @foreach (var author in ViewBag.Authors as IEnumerable<string>)
+                {
+                    var isSelected = ViewContext.HttpContext.Request.Query["authorFilter"] == author ? "selected" : "";
+                    @: <option value="@author" @isSelected>@author</option>
+                }
+            </select>
+        </div>
+
+        <!-- Sort By Dropdown -->
+        <div class="mb3">
+            <label for="sortDropdown" class="form-label">Sort By</label>
+            <select id="sortDropdown" class="form-select">
+                @foreach (var sortOption in new[]
+                {
+                    new { Value = "", Text = "Clear Sort" },
+                    new { Value = "price-asc", Text = "Price (Low to High)" },
+                    new { Value = "price-desc", Text = "Price (High to Low)" },
+                    new { Value = "most-popular", Text = "Most Popular" },
+                    new { Value = "genre", Text = "Genre" },
+                    new { Value = "year", Text = "Year of Publishing" }
+                })
+                {
+                    var isSelected = ViewContext.HttpContext.Request.Query["sort"] == sortOption.Value ? "selected" : "";
+                    @: <option value="@sortOption.Value" @isSelected>@sortOption.Text</option>
+                }
+            </select>
+        </div>
+
+        <!-- Buying/Borrowing Dropdown -->
+        <div class="mb-3">
+            <label for="buyBorrowDropdown" class="form-label">Availability</label>
+            <select id="buyBorrowDropdown" class="form-select">
+                <option value="">All</option>
+                <option value="buy" selected="@(ViewContext.HttpContext.Request.Query["availability"] == "buy")">Buy Only</option>
+                <option value="borrow" selected="@(ViewContext.HttpContext.Request.Query["availability"] == "borrow")">Borrow Only</option>
+            </select>
+        </div>
+
+        <!-- Price Range -->
+        <div class="mb-3">
+            <label for="priceRange" class="form-label">Price Range</label>
+            <div id="priceRangeSlider"></div>
+            <input type="hidden" id="priceRangeMin" name="priceRangeMin" value="@ViewContext.HttpContext.Request.Query["priceRangeMin"]" data-min-price="@ViewBag.MinPrice">
+            <input type="hidden" id="priceRangeMax" name="priceRangeMax" value="@ViewContext.HttpContext.Request.Query["priceRangeMax"]" data-max-price="@ViewBag.MaxPrice">
+            <div class="d-flex justify-content-between">
+                <span id="priceRangeMinLabel"></span>
+                <span id="priceRangeMaxLabel"></span>
+            </div>
+        </div>
+
+        <!-- Discounted Books Checkbox -->
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="onSaleCheckbox" @(ViewContext.HttpContext.Request.Query["onSale"] == "true" ? "checked" : "")>
+            <label class="form-check-label" for="onSaleCheckbox">Show Only Discounted Books</label>
+        </div>
+
+        <!-- Apply Filter Button -->
+        <div class="text-end">
+            <button class="btn btn-success" onclick="applyFilters()">Apply</button>
+        </div>
+    </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.css" rel="stylesheet">
+
+
+
+
 <!-- Library Book Container -->
 <div class="book-container">
     @foreach (var book in Model)
@@ -45,8 +114,8 @@
                             idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-07/d20/idle_success.png"
                         },
                         "Biography": {
-                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-22/lofi-girl-study-break/intro.png",
-                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-22/lofi-girl-study-break/idle_light.png"
+                            intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-04-25/twilight/intro_56dbd2384f.png",
+                            idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-04-25/twilight/loop_ff3e249d19.png"
                         },
                         "Sports": {
                             intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/intro.png",
@@ -155,7 +224,16 @@
                 <img src="data:image/png;base64,@(Convert.ToBase64String(book.CoverImage))"
                      alt="Cover Image" class="book-cover" />
             }
-
+            <!-- Age Limit Badge -->
+            @{
+                int ageLimit;
+                if (int.TryParse(book.AgeLimit, out ageLimit) && ageLimit > 0)
+                {
+                    <div class="age-limit-badge">
+                        @ageLimit+
+                    </div>
+                }
+            }
             <!-- Book Info -->
             <div class="book-info">
                 @if (!string.IsNullOrEmpty(book.Title) && book.Title.Length <= 18)
@@ -219,8 +297,14 @@
                         <div class="book-details">
                             <p><strong>Author:</strong> @book.Author</p>
                             <p><strong>Publisher:</strong> @book.Publisher</p>
+                            <p><strong>Publishing Year:</strong> @book.YearOfPublishing</p>
                             <p><strong>Format:</strong> @book.Format</p>
                             <p><strong>Category:</strong> @book.Category</p>
+                            <!-- Download Button -->
+                            <form method="post" asp-controller="Books" asp-action="DownloadBook">
+                                <input type="hidden" name="bookId" value="@book.BookId" />
+                                <button type="submit" class="btn btn-primary">Download</button>
+                            </form>
                             @if (!string.IsNullOrEmpty(book.RemainingBorrowTime))
                             {
                                 <p class="text-danger">Borrow Time Remaining: @book.RemainingBorrowTime</p>
@@ -235,14 +319,96 @@
                                     Delete from Library
                                 </button>
                             }
+
+
+                            
+                            <div class="modal-buttons" id="button-container-@book.BookId">
+                            <!-- Feedback Section -->
+                                <hr />
+                                <h5>Book Feedback</h5>
+
+                                <!-- Show existing comments/ratings from all users for this book -->
+                                @if (book.Feedbacks != null && book.Feedbacks.Count > 0)
+                                {
+                                    foreach (var feedback in book.Feedbacks)
+                                    {
+                                        <div class="existing-feedback mb-2">
+                                            <!-- Each feedback might show X stars in display mode -->
+                                            <div class="display-rating">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <span style="color:@(i <= feedback.Rating ? "gold" : "gray");">&#9733;</span>
+                                                }
+                                            </div>
+                                            <!-- Display comment -->
+                                            <p class="mt-1 mb-0"><em>@feedback.Comment</em></p>
+                                            <!-- If you want to show who posted it (first name, last name) and date: -->
+                                            <small>@feedback.FirstName @feedback.LastName on @feedback.Date.ToShortDateString()</small>
+                                            <hr />
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No feedback yet. Be the first to comment!</p>
+                                }
+                                <div class="your-feedback">
+                                    <h6>Your Feedback</h6>
+                                    <div class="star-rating" data-book-id="@book.BookId" data-selected-rating="@(book.UserRating ?? 0)">
+                                        <span class="star @( (book.UserRating ?? 0) >= 1 ? "selected" : "" )" data-value="1">&#9733;</span>
+                                        <span class="star @( (book.UserRating ?? 0) >= 2 ? "selected" : "" )" data-value="2">&#9733;</span>
+                                        <span class="star @( (book.UserRating ?? 0) >= 3 ? "selected" : "" )" data-value="3">&#9733;</span>
+                                        <span class="star @( (book.UserRating ?? 0) >= 4 ? "selected" : "" )" data-value="4">&#9733;</span>
+                                        <span class="star @( (book.UserRating ?? 0) >= 5 ? "selected" : "" )" data-value="5">&#9733;</span>
+                                    </div>
+
+                                    <textarea id="feedback-comment-@book.BookId" class="form-control mt-2" rows="3"
+                                                placeholder="Leave your comment here...">@book.UserComment</textarea>
+
+                                    <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="@book.BookId">
+                                        Submit Feedback
+                                    </button>
+                                </div>
+                                <!-- Show average rating -->
+                                @if (book.AverageRating > 0)
+                                {
+                                    <div class="average-rating mb-3">
+                                        <strong>Average Rating:</strong>
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <span style="color:@(i <= Math.Round(book.AverageRating) ? "gold" : "gray");">&#9733;</span>
+                                        }
+                                        <small>(@book.RatingCount ratings)</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="average-rating mb-3">
+                                        <strong>Average Rating:</strong> No ratings yet.
+                                    </div>
+                                }
+                            </div>
+                            
+
+
+
                         </div>
                         <!-- Book Image Section -->
-                        @if (book.CoverImage != null)
+                       @if (book.CoverImage != null)
                         {
-                            <div class="book-image-container" id="modalBookContainer-@book.BookId">
+                            <div class="book-image-container position-relative" id="modalBookContainer-@book.BookId">
                                 <img src="data:image/png;base64,@(Convert.ToBase64String(book.CoverImage))"
                                      alt="Book Cover Image" class="img-fluid" />
                                 <div class="effect-overlay"></div>
+                                <!-- Age Limit Badge -->
+                                @{
+                                    if (int.TryParse(book.AgeLimit, out ageLimit) && ageLimit > 0)
+                                    {
+                                        <div class="age-limit-badge position-absolute top-0 end-4 m-2">
+                                            @ageLimit+
+                                        </div>
+                                    }
+                                }
                             </div>
                         }
 
@@ -261,8 +427,8 @@
                                         idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-10-07/d20/idle_success.png"
                                     },
                                     "Biography": {
-                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-22/lofi-girl-study-break/intro.png",
-                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-22/lofi-girl-study-break/idle_light.png"
+                                        intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-04-25/twilight/intro_56dbd2384f.png",
+                                        idle: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-04-25/twilight/loop_ff3e249d19.png"
                                     },
                                     "Sports": {
                                         intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/intro.png",

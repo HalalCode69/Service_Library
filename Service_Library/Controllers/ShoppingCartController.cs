@@ -1,0 +1,146 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Service_Library.Models;
+using Service_Library.Entities;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Security.Claims;
+
+namespace Service_Library.Controllers
+{
+    public class ShoppingCartController : Controller
+    {
+        private readonly AppDbContext _context;
+
+        public ShoppingCartController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+            if (userIdString == null || !int.TryParse(userIdString, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var items = await _context.ShoppingCartItems
+                .Where(item => item.UserId == userId)
+                .ToListAsync();
+            return View(items);
+        }
+
+        [HttpPost]
+        public IActionResult Add([FromBody] CartItemDto cartItemDto)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(cartItemDto.Title))
+                {
+                    return Json(new { success = false, message = "Title is required." });
+                }
+
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+                if (userIdString == null || !int.TryParse(userIdString, out int userId))
+                {
+                    return Unauthorized();
+                }
+
+                var item = _context.ShoppingCartItems
+                    .FirstOrDefault(i => i.UserId == userId && i.BookId == cartItemDto.BookId);
+
+                if (item == null)
+                {
+                    item = new ShoppingCartItem
+                    {
+                        UserId = userId,
+                        BookId = cartItemDto.BookId,
+                        Title = cartItemDto.Title,
+                        Price = cartItemDto.Price,
+                        Quantity = 1
+                    };
+                    _context.ShoppingCartItems.Add(item);
+                }
+                else
+                {
+                    item.Quantity++;
+                }
+
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Item added to cart." });
+            }
+            catch (DbUpdateException ex)
+            {
+                var innerException = ex.InnerException?.Message ?? ex.Message;
+                return Json(new { success = false, message = $"An error occurred while adding to the cart: {innerException}" });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult Remove([FromBody] CartItemDto cartItemDto)
+        {
+            try
+            {
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+                if (userIdString == null || !int.TryParse(userIdString, out int userId))
+                {
+                    return Unauthorized();
+                }
+
+                var item = _context.ShoppingCartItems
+                    .FirstOrDefault(i => i.UserId == userId && i.BookId == cartItemDto.BookId);
+
+                if (item != null)
+                {
+                    _context.ShoppingCartItems.Remove(item);
+                    _context.SaveChanges();
+                    return Json(new { success = true, message = "Item removed from cart." });
+                }
+
+                return Json(new { success = false, message = "Item not found in cart." });
+            }
+            catch (DbUpdateException ex)
+            {
+                var innerException = ex.InnerException?.Message ?? ex.Message;
+                return Json(new { success = false, message = $"An error occurred while removing from the cart: {innerException}" });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult Clear()
+        {
+            try
+            {
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+                if (userIdString == null || !int.TryParse(userIdString, out int userId))
+                {
+                    return Unauthorized();
+                }
+
+                var items = _context.ShoppingCartItems.Where(i => i.UserId == userId).ToList();
+
+                if (items.Any())
+                {
+                    _context.ShoppingCartItems.RemoveRange(items);
+                    _context.SaveChanges();
+                    return Json(new { success = true, message = "Cart cleared." });
+                }
+
+                return Json(new { success = false, message = "Cart is already empty." });
+            }
+            catch (DbUpdateException ex)
+            {
+                var innerException = ex.InnerException?.Message ?? ex.Message;
+                return Json(new { success = false, message = $"An error occurred while clearing the cart: {innerException}" });
+            }
+        }
+    }
+
+    public class CartItemDto
+    {
+        public int BookId { get; set; }
+        public string Title { get; set; }
+        public decimal Price { get; set; }
+    }
+}

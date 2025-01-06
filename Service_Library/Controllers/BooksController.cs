@@ -20,9 +20,23 @@ namespace Service_Library.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index(string search, string categoryFilter, string formatFilter, string sort)
+        public IActionResult Index(string search, string categoryFilter, string formatFilter, string sort, bool? onSale, string availability, string authorFilter, decimal? priceRangeMin, decimal? priceRangeMax)
         {
-            var books = _context.Books.AsQueryable();
+            var booksQuery = _context.Books.AsQueryable();
+
+            // Calculate overall min and max prices
+            decimal overallMinPrice = 0;
+            decimal overallMaxPrice = 0;
+
+            var allBooks = _context.Books.ToList();
+            if (allBooks.Any())
+            {
+                overallMinPrice = allBooks.Min(b => Math.Min(b.BuyPrice, b.BorrowPrice));
+                overallMaxPrice = allBooks.Max(b => Math.Max(b.BuyPrice, b.BorrowPrice));
+            }
+
+            ViewBag.MinPrice = overallMinPrice;
+            ViewBag.MaxPrice = overallMaxPrice;
 
             // Populate categories for the filter dropdown
             ViewBag.Categories = _context.Books
@@ -31,10 +45,17 @@ namespace Service_Library.Controllers
                 .OrderBy(c => c) // Optional: Sort categories alphabetically
                 .ToList();
 
+            // Populate authors for the filter dropdown
+            ViewBag.Authors = _context.Books
+                .Select(b => b.Author)
+                .Distinct()
+                .OrderBy(a => a) // Optional: Sort authors alphabetically
+                .ToList();
+
             // Apply search logic for title, author, and publisher
             if (!string.IsNullOrEmpty(search))
             {
-                books = books.Where(b =>
+                booksQuery = booksQuery.Where(b =>
                     b.Title.Contains(search) ||
                     b.Author.Contains(search) ||
                     b.Publisher.Contains(search));
@@ -43,17 +64,75 @@ namespace Service_Library.Controllers
             // Apply category filter
             if (!string.IsNullOrEmpty(categoryFilter))
             {
-                books = books.Where(b => b.Category == categoryFilter);
+                booksQuery = booksQuery.Where(b => b.Category == categoryFilter);
             }
 
-            // Apply sorting logic
-            if (sort == "price-asc")
+            // Apply format filter
+            if (!string.IsNullOrEmpty(formatFilter))
             {
-                books = books.OrderBy(b => b.BorrowPrice);
+                booksQuery = booksQuery.Where(b => b.Format == formatFilter);
             }
-            else if (sort == "price-desc")
+
+            // Apply on sale filter
+            if (onSale.HasValue && onSale.Value)
             {
-                books = books.OrderByDescending(b => b.BorrowPrice);
+                booksQuery = booksQuery.Where(b => b.DiscountPrice.HasValue && b.DiscountEndDate > DateTime.Now);
+            }
+
+            // Apply availability filter
+            if (!string.IsNullOrEmpty(availability))
+            {
+                if (availability == "borrow")
+                {
+                    booksQuery = booksQuery.Where(b => b.IsBorrowable);
+                }
+                else if (availability == "buy")
+                {
+                    booksQuery = booksQuery.Where(b => !b.IsBorrowable);
+                }
+            }
+
+            // Apply author filter
+            if (!string.IsNullOrEmpty(authorFilter))
+            {
+                booksQuery = booksQuery.Where(b => b.Author == authorFilter);
+            }
+
+            // Apply price range filter
+            if (priceRangeMin.HasValue || priceRangeMax.HasValue)
+            {
+                decimal minFilterPrice = priceRangeMin ?? 0;
+                decimal maxFilterPrice = priceRangeMax ?? decimal.MaxValue;
+
+                booksQuery = booksQuery.Where(b =>
+                    (b.BuyPrice >= minFilterPrice && b.BuyPrice <= maxFilterPrice) ||
+                    (b.BorrowPrice >= minFilterPrice && b.BorrowPrice <= maxFilterPrice));
+            }
+
+            // Fetch the books from the database
+            var books = booksQuery.ToList();
+
+            // Apply sorting logic
+            switch (sort)
+            {
+                case "price-asc":
+                    books = books.OrderBy(b => b.BuyPrice).ToList();
+                    break;
+                case "price-desc":
+                    books = books.OrderByDescending(b => b.BuyPrice).ToList();
+                    break;
+                case "most-popular":
+                    books = books.OrderByDescending(b => !b.IsBorrowable).ThenByDescending(b => b.RatingCount).ToList();
+                    break;
+                case "genre":
+                    books = books.OrderBy(b => b.Category).ToList();
+                    break;
+                case "year":
+                    books = books.OrderByDescending(b => b.YearOfPublishing).ToList();
+                    break;
+                default:
+                    books = books.OrderBy(b => b.Title).ToList(); // Default sorting by title
+                    break;
             }
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
@@ -94,7 +173,6 @@ namespace Service_Library.Controllers
                     })
                     .ToList();
 
-
                 // Check active borrow count
                 book.ActiveBorrowCount = _context.BorrowTransactions
                     .Count(bt => bt.BookId == book.BookId && !bt.IsReturned);
@@ -112,18 +190,19 @@ namespace Service_Library.Controllers
                 }
 
                 // Check if the book is reserved
-                if (book.ReservedForUserId.HasValue && book.ReservationExpiry > DateTime.Now)
+                var reservations = _context.BookReservations
+                    .Where(br => br.BookId == book.BookId && br.ReservationExpiry > DateTime.Now)
+                    .ToList();
+
+                if (reservations.Any(r => r.UserId == userId))
                 {
-                    if (book.ReservedForUserId == userId)
-                    {
-                        // This user has the reservation
-                        book.IsReservedForCurrentUser = true;
-                    }
-                    else
-                    {
-                        // Another user has the reservation
-                        book.IsReservedForOtherUser = true;
-                    }
+                    // This user has a reservation
+                    book.IsReservedForCurrentUser = true;
+                }
+                else if (reservations.Any())
+                {
+                    // Another user has a reservation
+                    book.IsReservedForOtherUser = true;
                 }
                 else
                 {
@@ -131,7 +210,6 @@ namespace Service_Library.Controllers
                     book.IsReservedForCurrentUser = false;
                     book.IsReservedForOtherUser = false;
                 }
-
                 // Check if the book is owned by the user
                 book.IsOwnedByCurrentUser = purchasedBooks.Any(t => t.BookId == book.BookId);
 
@@ -148,7 +226,7 @@ namespace Service_Library.Controllers
                 }
                 else
                 {
-                    book.UsersBeforeInWaitList = book.WaitingListCount;
+                    book.UsersBeforeInWaitList = book.WaitingListCount + 1; // Include the current user
                 }
 
                 // Fetch the user's rating for the book
@@ -162,6 +240,57 @@ namespace Service_Library.Controllers
                 var userFeedback = _context.Feedbacks
                     .FirstOrDefault(f => f.BookId == book.BookId && f.UserId == userId.ToString());
                 book.UserComment = userFeedback?.Comment ?? string.Empty; // Precompute the user's comment
+
+                // Calculate estimated availability
+                var borrowedCopies = _context.BorrowTransactions
+                    .Where(bt => bt.BookId == book.BookId && !bt.IsReturned)
+                    .OrderBy(bt => bt.ReturnDate)
+                    .ToList();
+
+                if (book.IsUserOnWaitingList)
+                {
+                    if (book.UserWaitingPosition <= 3)
+                    {
+                        // User is within the first 3 positions
+                        var closestReturnDate = borrowedCopies.FirstOrDefault()?.ReturnDate ?? DateTime.Now;
+                        book.EstimatedAvailabilityInDays = (closestReturnDate - DateTime.Now).Days;
+                    }
+                    else if (book.UserWaitingPosition <= 6)
+                    {
+                        // User is within the 4th to 6th positions
+                        var secondClosestReturnDate = borrowedCopies.Skip(1).FirstOrDefault()?.ReturnDate ?? DateTime.Now;
+                        book.EstimatedAvailabilityInDays = (secondClosestReturnDate - DateTime.Now).Days;
+                    }
+                    else
+                    {
+                        // User is in the 7th position or beyond
+                        var thirdClosestReturnDate = borrowedCopies.Skip(2).FirstOrDefault()?.ReturnDate ?? DateTime.Now;
+                        book.EstimatedAvailabilityInDays = (thirdClosestReturnDate - DateTime.Now).Days;
+                    }
+                }
+                else
+                {
+                    // If the user is not on the waiting list, calculate the estimated availability as if they were joining
+                    var potentialPosition = book.WaitingListCount + 1;
+                    if (potentialPosition <= 3)
+                    {
+                        // User would be within the first 3 positions
+                        var closestReturnDate = borrowedCopies.FirstOrDefault()?.ReturnDate ?? DateTime.Now;
+                        book.EstimatedAvailabilityInDays = (closestReturnDate - DateTime.Now).Days;
+                    }
+                    else if (potentialPosition <= 6)
+                    {
+                        // User would be within the 4th to 6th positions
+                        var secondClosestReturnDate = borrowedCopies.Skip(1).FirstOrDefault()?.ReturnDate ?? DateTime.Now;
+                        book.EstimatedAvailabilityInDays = (secondClosestReturnDate - DateTime.Now).Days;
+                    }
+                    else
+                    {
+                        // User would be in the 7th position or beyond
+                        var thirdClosestReturnDate = borrowedCopies.Skip(2).FirstOrDefault()?.ReturnDate ?? DateTime.Now;
+                        book.EstimatedAvailabilityInDays = (thirdClosestReturnDate - DateTime.Now).Days;
+                    }
+                }
             }
 
             return View(bookList);
@@ -209,17 +338,13 @@ namespace Service_Library.Controllers
                 }
 
                 // Check if the book is reserved for another user
-                if (book.ReservedForUserId.HasValue && book.ReservationExpiry > DateTime.Now)
+                var reservations = _context.BookReservations
+                    .Where(br => br.BookId == book.BookId && br.ReservationExpiry > DateTime.Now)
+                    .ToList();
+
+                if (reservations.Any(r => r.UserId != userId) && !reservations.Any(r => r.UserId == userId))
                 {
-                    if (book.ReservedForUserId != userId)
-                    {
-                        return Json(new { success = false, message = "This book is reserved for another user." });
-                    }
-                }
-                else if (book.ReservationExpiry != null && DateTime.Now > book.ReservationExpiry)
-                {
-                    book.ReservedForUserId = null;
-                    book.ReservationExpiry = null;
+                    return Json(new { success = false, message = "This book is reserved for another user." });
                 }
 
                 // Check if the user has already borrowed 3 books
@@ -240,7 +365,7 @@ namespace Service_Library.Controllers
                 }
 
                 // Allow borrowing if the book is reserved for the current user or if there are available copies
-                if (book.AvailableCopies > 0 || (book.ReservedForUserId == userId && book.ReservationExpiry > DateTime.Now))
+                if (book.AvailableCopies > 0 || reservations.Any(r => r.UserId == userId))
                 {
                     var borrowDate = DateTime.Now;
                     var returnDate = borrowDate.AddDays(5); // Replace with correct borrow duration logic.
@@ -254,18 +379,42 @@ namespace Service_Library.Controllers
                         IsReturned = false
                     };
 
-                    if (book.ReservedForUserId == userId)
-                    {
-                        book.ReservedForUserId = null;
-                        book.ReservationExpiry = null;
-                    }
-                    else
+                    // Remove all reservations for this book
+                    _context.BookReservations.RemoveRange(reservations);
+
+                    // Decrease available copies if not reserved for the current user
+                    if (!reservations.Any(r => r.UserId == userId))
                     {
                         book.AvailableCopies--;
                     }
 
                     _context.BorrowTransactions.Add(transaction);
                     _context.SaveChanges();
+
+                    // Notify the remaining users in the reservations
+                    foreach (var reservation in reservations.Where(r => r.UserId != userId))
+                    {
+                        var user = _context.UserAccounts.FirstOrDefault(u => u.Id == reservation.UserId);
+                        if (user != null)
+                        {
+                            string subject = "Book Borrowed by Another User";
+                            string body = $@"
+                    <p>Dear {user.FirstName},</p>
+                    <p>Unfortunately, the book <strong>{book.Title}</strong> has been borrowed by another user.</p>
+                    <p>We apologize for the inconvenience.</p>
+                    <p>Thank you!</p>";
+
+                            _emailService.SendEmailAsync(user.Email, subject, body).Wait();
+                        }
+                    }
+
+                    // Remove the user from the waiting list
+                    var waitingEntry = _context.WaitingList.FirstOrDefault(w => w.BookId == book.BookId && w.UserId == userId);
+                    if (waitingEntry != null)
+                    {
+                        _context.WaitingList.Remove(waitingEntry);
+                        _context.SaveChanges();
+                    }
 
                     return Json(new
                     {
@@ -288,6 +437,18 @@ namespace Service_Library.Controllers
                 return Json(new { success = false, message = "An error occurred while processing your request." });
             }
         }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -392,10 +553,10 @@ namespace Service_Library.Controllers
             }
 
             // If the user had a reservation, release it
-            if (book.ReservedForUserId == userId)
+            var userReservation = _context.BookReservations.FirstOrDefault(br => br.BookId == book.BookId && br.UserId == userId);
+            if (userReservation != null)
             {
-                book.ReservedForUserId = null;
-                book.ReservationExpiry = null;
+                _context.BookReservations.Remove(userReservation);
 
                 // Check if there is another user in the waiting list
                 var nextInLine = _context.WaitingList
@@ -403,7 +564,7 @@ namespace Service_Library.Controllers
                     .OrderBy(w => w.AddedDate)
                     .FirstOrDefault();
 
-                if (nextInLine != null && nextInLine.UserId != userId)
+                if (nextInLine != null)
                 {
                     // Notify the next user
                     var user = _context.UserAccounts.FirstOrDefault(u => u.Id == nextInLine.UserId);
@@ -411,30 +572,34 @@ namespace Service_Library.Controllers
                     {
                         string subject = "Book Available for Borrowing";
                         string body = $@"
-                        <p>Dear {user.FirstName},</p>
-                        <p>The book <strong>{book.Title}</strong> is now reserved for you.</p>
-                        <p>Please borrow it within the next 24 hours.</p>
-                        <p>Thank you!</p>";
+                <p>Dear {user.FirstName},</p>
+                <p>The book <strong>{book.Title}</strong> is now reserved for you.</p>
+                <p>Please borrow it within the next 24 hours.</p>
+                <p>Thank you!</p>";
 
                         _emailService.SendEmailAsync(user.Email, subject, body).Wait();
                     }
 
                     // Reserve the book for the next user
-                    book.ReservedForUserId = nextInLine.UserId;
-                    book.ReservationExpiry = DateTime.Now.AddHours(24);
+                    var reservation = new BookReservation
+                    {
+                        BookId = book.BookId,
+                        UserId = nextInLine.UserId,
+                        ReservationExpiry = DateTime.Now.AddHours(24)
+                    };
+                    _context.BookReservations.Add(reservation);
 
                     // Remove the next user from the waiting list
                     _context.WaitingList.Remove(nextInLine);
                 }
             }
 
-
             // Save changes immediately to ensure the state is updated
             _context.SaveChanges();
 
             // Fetch the updated waiting list count and reservation status
             var waitingListCount = _context.WaitingList.Count(w => w.BookId == request.BookId);
-            var isReserved = book.ReservedForUserId != null;
+            var isReserved = _context.BookReservations.Any(br => br.BookId == book.BookId);
 
             return Json(new
             {
@@ -445,11 +610,11 @@ namespace Service_Library.Controllers
             });
         }
 
-
         public class LeaveWaitingListRequest
         {
             public int BookId { get; set; }
         }
+
 
 
 
@@ -483,43 +648,44 @@ namespace Service_Library.Controllers
                 {
                     book.AvailableCopies++;
 
+                    // Clear all reservations for this book
+                    var existingReservations = _context.BookReservations.Where(br => br.BookId == book.BookId).ToList();
+                    _context.BookReservations.RemoveRange(existingReservations);
+
                     // Check if there is a waiting list for this book
-                    var nextInLine = _context.WaitingList
+                    var nextInLineUsers = _context.WaitingList
                         .Where(w => w.BookId == book.BookId)
                         .OrderBy(w => w.AddedDate)
-                        .FirstOrDefault();
+                        .Take(3) // Get the first three users in the waiting list
+                        .ToList();
 
-                    if (nextInLine != null)
+                    if (nextInLineUsers.Any())
                     {
-                        // Notify the next user
-                        var user = _context.UserAccounts.FirstOrDefault(u => u.Id == nextInLine.UserId);
-                        if (user != null)
+                        foreach (var nextInLine in nextInLineUsers)
                         {
-                            string subject = "Book Available for Borrowing";
-                            string body = $@"
-                                <p>Dear {user.FirstName},</p>
-                                <p>The book <strong>{book.Title}</strong> is now reserved for you.</p>
-                                <p>Please borrow it within the next 24 hours.</p>
-                                <p>Thank you!</p>";
+                            // Notify the next user
+                            var user = _context.UserAccounts.FirstOrDefault(u => u.Id == nextInLine.UserId);
+                            if (user != null)
+                            {
+                                string subject = "Book Available for Borrowing";
+                                string body = $@"
+                            <p>Dear {user.FirstName},</p>
+                            <p>The book <strong>{book.Title}</strong> is now reserved for you.</p>
+                            <p>Please borrow it within the next 24 hours.</p>
+                            <p>Thank you!</p>";
 
-                            _emailService.SendEmailAsync(user.Email, subject, body).Wait();
+                                _emailService.SendEmailAsync(user.Email, subject, body).Wait();
+                            }
+
+                            // Reserve the book for the next user
+                            var reservation = new BookReservation
+                            {
+                                BookId = book.BookId,
+                                UserId = nextInLine.UserId,
+                                ReservationExpiry = DateTime.Now.AddHours(24)
+                            };
+                            _context.BookReservations.Add(reservation);
                         }
-
-                        // Reserve the book for the next user
-                        book.ReservedForUserId = nextInLine.UserId;
-                        book.ReservationExpiry = DateTime.Now.AddHours(24);
-
-                        // Remove the user from the waiting list after reserving
-                        _context.WaitingList.Remove(nextInLine);
-
-                        // Ensure the reserved book is not shown as available for borrowing
-                        book.AvailableCopies--;
-                    }
-                    else
-                    {
-                        // If no waiting list, book becomes generally available
-                        book.ReservedForUserId = null;
-                        book.ReservationExpiry = null;
                     }
                 }
 
@@ -543,6 +709,12 @@ namespace Service_Library.Controllers
         }
 
 
+
+
+
+
+
+
         public class ReturnBookRequest
         {
             public int TransactionId { get; set; }
@@ -551,70 +723,70 @@ namespace Service_Library.Controllers
 
 
         [Authorize]
-[HttpPost]
-public IActionResult BuyBook([FromBody] BuyBookRequest request)
-{
-    if (request == null || request.BookId <= 0)
-    {
-        return Json(new { success = false, message = "Invalid book ID." });
-    }
+        [HttpPost]
+        public IActionResult BuyBook([FromBody] BuyBookRequest request)
+        {
+            if (request == null || request.BookId <= 0)
+            {
+                return Json(new { success = false, message = "Invalid book ID." });
+            }
 
-    var book = _context.Books.FirstOrDefault(b => b.BookId == request.BookId);
+            var book = _context.Books.FirstOrDefault(b => b.BookId == request.BookId);
 
-    if (book == null)
-    {
-        return Json(new { success = false, message = "Book not found." });
-    }
+            if (book == null)
+            {
+                return Json(new { success = false, message = "Book not found." });
+            }
 
-    var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-    // Check if user already owns the book
-    var existingTransaction = _context.Transactions
-        .FirstOrDefault(t => t.UserId == userId && t.BookId == request.BookId && t.TransactionType == "Buy");
+            // Check if user already owns the book
+            var existingTransaction = _context.Transactions
+                .FirstOrDefault(t => t.UserId == userId && t.BookId == request.BookId && t.TransactionType == "Buy");
 
-    if (existingTransaction != null)
-    {
-        return Json(new { success = false, message = "You already own this book!" });
-    }
+            if (existingTransaction != null)
+            {
+                return Json(new { success = false, message = "You already own this book!" });
+            }
 
-    // Remove user from the waiting list (if they are on it)
-    var waitingListEntry = _context.WaitingList
-        .FirstOrDefault(w => w.BookId == request.BookId && w.UserId == userId);
+            // Remove user from the waiting list (if they are on it)
+            var waitingListEntry = _context.WaitingList
+                .FirstOrDefault(w => w.BookId == request.BookId && w.UserId == userId);
 
-    if (waitingListEntry != null)
-    {
-        _context.WaitingList.Remove(waitingListEntry);
-    }
+            if (waitingListEntry != null)
+            {
+                _context.WaitingList.Remove(waitingListEntry);
+            }
 
-    // Handle active borrow transactions
-    var borrowTransaction = _context.BorrowTransactions
-        .FirstOrDefault(bt => bt.BookId == request.BookId && bt.UserId == userId && !bt.IsReturned);
+            // Handle active borrow transactions
+            var borrowTransaction = _context.BorrowTransactions
+                .FirstOrDefault(bt => bt.BookId == request.BookId && bt.UserId == userId && !bt.IsReturned);
 
-    if (borrowTransaction != null)
-    {
-        borrowTransaction.IsReturned = true; // Mark as returned
-    }
+            if (borrowTransaction != null)
+            {
+                borrowTransaction.IsReturned = true; // Mark as returned
+            }
 
-    // Create a transaction for buying
-    var transaction = new Transaction
-    {
-        UserId = userId,
-        BookId = request.BookId,
-        TransactionType = "Buy",
-        TransactionDate = DateTime.Now,
-        Status = "Completed"
-    };
+            // Create a transaction for buying
+            var transaction = new Transaction
+            {
+                UserId = userId,
+                BookId = request.BookId,
+                TransactionType = "Buy",
+                TransactionDate = DateTime.Now,
+                Status = "Completed"
+            };
 
-    _context.Transactions.Add(transaction);
-    _context.SaveChanges();
+            _context.Transactions.Add(transaction);
+            _context.SaveChanges();
 
-    return Json(new
-    {
-        success = true,
-        message = "Book purchased successfully!",
-        bookId = request.BookId
-    });
-}
+            return Json(new
+            {
+                success = true,
+                message = "Book purchased successfully!",
+                bookId = request.BookId
+            });
+        }
 
         public class BuyBookRequest
         {
@@ -622,7 +794,7 @@ public IActionResult BuyBook([FromBody] BuyBookRequest request)
         }
 
         [Authorize]
-        public IActionResult Library(string search, string categoryFilter)
+        public IActionResult Library(string search, string categoryFilter, string sort, string authorFilter, decimal? priceRangeMin, decimal? priceRangeMax, bool? onSale, string availability)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
@@ -640,6 +812,20 @@ public IActionResult BuyBook([FromBody] BuyBookRequest request)
             var booksQuery = _context.Books
                 .Where(b => borrowedBookIds.Contains(b.BookId) || purchasedBookIds.Contains(b.BookId));
 
+            // Calculate overall min and max prices
+            decimal overallMinPrice = 0;
+            decimal overallMaxPrice = 0;
+
+            var allBooks = _context.Books.ToList();
+            if (allBooks.Any())
+            {
+                overallMinPrice = allBooks.Min(b => Math.Min(b.BuyPrice, b.BorrowPrice));
+                overallMaxPrice = allBooks.Max(b => Math.Max(b.BuyPrice, b.BorrowPrice));
+            }
+
+            ViewBag.MinPrice = overallMinPrice;
+            ViewBag.MaxPrice = overallMaxPrice;
+
             // Filter by search
             if (!string.IsNullOrEmpty(search))
             {
@@ -652,10 +838,75 @@ public IActionResult BuyBook([FromBody] BuyBookRequest request)
                 booksQuery = booksQuery.Where(b => b.Category == categoryFilter);
             }
 
-            // Pass distinct categories to the view
+            // Filter by author
+            if (!string.IsNullOrEmpty(authorFilter))
+            {
+                booksQuery = booksQuery.Where(b => b.Author == authorFilter);
+            }
+
+            // Apply price range filter
+            if (priceRangeMin.HasValue || priceRangeMax.HasValue)
+            {
+                decimal minFilterPrice = priceRangeMin ?? 0;
+                decimal maxFilterPrice = priceRangeMax ?? decimal.MaxValue;
+
+                booksQuery = booksQuery.Where(b =>
+                    (b.BuyPrice >= minFilterPrice && b.BuyPrice <= maxFilterPrice) ||
+                    (b.BorrowPrice >= minFilterPrice && b.BorrowPrice <= maxFilterPrice));
+            }
+
+            // Apply on sale filter
+            if (onSale.HasValue && onSale.Value)
+            {
+                booksQuery = booksQuery.Where(b => b.DiscountPrice.HasValue && b.DiscountEndDate > DateTime.Now);
+            }
+
+            // Apply availability filter
+            if (!string.IsNullOrEmpty(availability))
+            {
+                if (availability == "borrow")
+                {
+                    booksQuery = booksQuery.Where(b => b.IsBorrowable);
+                }
+                else if (availability == "buy")
+                {
+                    booksQuery = booksQuery.Where(b => !b.IsBorrowable);
+                }
+            }
+
+            // Apply sorting logic
+            switch (sort)
+            {
+                case "price-asc":
+                    booksQuery = booksQuery.OrderBy(b => b.BuyPrice);
+                    break;
+                case "price-desc":
+                    booksQuery = booksQuery.OrderByDescending(b => b.BuyPrice);
+                    break;
+                case "most-popular":
+                    booksQuery = booksQuery.OrderByDescending(b => !b.IsBorrowable).ThenByDescending(b => b.RatingCount);
+                    break;
+                case "genre":
+                    booksQuery = booksQuery.OrderBy(b => b.Category);
+                    break;
+                case "year":
+                    booksQuery = booksQuery.OrderByDescending(b => b.YearOfPublishing);
+                    break;
+                default:
+                    booksQuery = booksQuery.OrderBy(b => b.Title); // Default sorting by title
+                    break;
+            }
+
+            // Pass distinct categories and authors to the view
             ViewBag.Categories = _context.Books
                 .Where(b => borrowedBookIds.Contains(b.BookId) || purchasedBookIds.Contains(b.BookId))
                 .Select(b => b.Category)
+                .Distinct()
+                .ToList();
+
+            ViewBag.Authors = _context.Books
+                .Where(b => borrowedBookIds.Contains(b.BookId) || purchasedBookIds.Contains(b.BookId))
+                .Select(b => b.Author)
                 .Distinct()
                 .ToList();
 
@@ -676,10 +927,39 @@ public IActionResult BuyBook([FromBody] BuyBookRequest request)
 
                     book.BorrowTransactionId = borrowTransaction.TransactionId; // Include BorrowTransactionId
                 }
+
+                // Populate feedbacks for each book
+                book.Feedbacks = _context.Feedbacks
+                    .Where(f => f.BookId == book.BookId)
+                    .OrderByDescending(f => f.Date)
+                    .Select(f => new Feedback
+                    {
+                        FeedbackId = f.FeedbackId,
+                        BookId = f.BookId,
+                        UserId = f.UserId,
+                        Rating = f.Rating,
+                        Comment = f.Comment,
+                        Date = f.Date,
+                        FirstName = _context.UserAccounts
+                            .Where(u => u.Id.ToString() == f.UserId)
+                            .Select(u => u.FirstName)
+                            .FirstOrDefault() ?? "Anonymous",
+                        LastName = _context.UserAccounts
+                            .Where(u => u.Id.ToString() == f.UserId)
+                            .Select(u => u.LastName)
+                            .FirstOrDefault() ?? ""
+                    })
+                    .ToList();
             }
 
             return View(libraryBooks);
         }
+
+
+
+
+
+
 
 
 
@@ -815,6 +1095,34 @@ public IActionResult BuyBook([FromBody] BuyBookRequest request)
                 return Json(new { success = false, message = "An error occurred while submitting your feedback." });
             }
         }
+
+
+        [HttpPost]
+        public IActionResult DownloadBook(int bookId)
+        {
+            var book = _context.Books.FirstOrDefault(b => b.BookId == bookId);
+            if (book == null || book.BookContent == null)
+            {
+                return NotFound();
+            }
+
+            string contentType = book.Format switch
+            {
+                "PDF" => "application/pdf",
+                "EPUB" => "application/epub+zip",
+                "MOBI" => "application/x-mobipocket-ebook",
+                "FB2" => "application/xml",
+                _ => "application/octet-stream"
+            };
+
+            var fileName = $"{book.Title}.{book.Format.ToLower()}";
+            Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+
+            return File(book.BookContent, contentType, fileName);
+        }
+
+
+
 
 
         [HttpGet]

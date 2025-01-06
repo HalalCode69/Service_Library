@@ -19,8 +19,6 @@ namespace Service_Library.Models
         public bool IsBorrowable { get; set; }
         public byte[]? CoverImage { get; set; }
         public string Category { get; set; }
-        public int? ReservedForUserId { get; set; } // User ID for the reserved user
-        public DateTime? ReservationExpiry { get; set; } // Reservation expiry time
         public bool IsOwnedByCurrentUser { get; set; }
         public string AgeLimit { get; set; } // New property for age limitation
         public List<Feedback> Feedbacks { get; set; } = new List<Feedback>(); // Initialize to an empty list
@@ -29,9 +27,10 @@ namespace Service_Library.Models
         public int RatingCount { get; set; } = 0; // New property for rating count
         public int? UserRating { get; set; } // Nullable to indicate no rating
         public bool UserHasPostedFeedback { get; set; }
+        public byte[]? BookContent { get; set; } // New property for book content
 
         [NotMapped] // Ensure it's not part of the database
-        public string UserComment { get; set; }
+        public string UserComment { get; set; } = "";
 
         [NotMapped] // Ensure this is not stored in the database
         public int EstimatedAvailabilityInDays { get; set; }
@@ -53,6 +52,7 @@ namespace Service_Library.Models
 
         [NotMapped]
         public bool IsUserOnWaitingList { get; set; } = false; // Whether the user is in the waiting list
+
         [NotMapped]
         public string RemainingBorrowTime { get; set; } = string.Empty; // Dynamically calculated in the controller
 
@@ -61,7 +61,10 @@ namespace Service_Library.Models
 
         [NotMapped]
         public int UsersBeforeInWaitList { get; set; } // Users before this user in the waiting list
+
         [NotMapped]
         public int? BorrowTransactionId { get; set; }
+
     }
 }
+

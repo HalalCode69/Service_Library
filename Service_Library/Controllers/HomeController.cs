@@ -48,7 +48,17 @@ namespace Service_Library.Controllers
             await reminderService.SendReminderEmails();
             return Ok("Reminder emails sent!");
         }
+        [HttpGet]
+        public IActionResult GetFavicon()
+        {
+            var icon = _context.WebsiteIcons.FirstOrDefault();
+            if (icon == null)
+            {
+                return NotFound();
+            }
 
+            return File(icon.IconData, icon.ContentType);
+        }
         [HttpGet]
         public async Task<IActionResult> TestEmail()
         {

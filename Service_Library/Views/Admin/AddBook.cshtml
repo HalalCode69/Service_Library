@@ -56,6 +56,14 @@
         <input type="number" class="form-control" id="BuyPrice" asp-for="BuyPrice" step="0.01" min="0" required />
     </div>
     <div class="form-group">
+        <label for="DiscountPrice">Discount Price</label>
+        <input type="number" class="form-control" id="DiscountPrice" asp-for="DiscountPrice" step="0.01" min="0" />
+    </div>
+    <div class="form-group">
+        <label for="DiscountEndDate">Discount End Date</label>
+        <input type="date" class="form-control" id="DiscountEndDate" asp-for="DiscountEndDate" />
+    </div>
+    <div class="form-group">
         <label for="AvailableCopies">Available Copies</label>
         <input type="number" class="form-control" id="AvailableCopies" asp-for="AvailableCopies" min="0" required />
     </div>
@@ -80,18 +88,51 @@
         <label for="CoverImage">Cover Image</label>
         <input type="file" class="form-control-file" id="CoverImage" name="CoverImage" accept="image/*" required />
     </div>
+    <div class="form-group">
+        <label for="BookContent">Book Content</label>
+        <input type="file" class="form-control-file" id="BookContent" name="BookContent" accept=".pdf,.epub,.mobi,.fb2" onchange="validateFileFormat()" required />
+    </div>
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
 
 <script>
+    function validateFileFormat() {
+        const fileInput = document.getElementById('BookContent');
+        const file = fileInput.files[0];
+        const format = document.getElementById('Format').value.toLowerCase();
+
+        if (file) {
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (fileExtension !== format) {
+                alert(`Selected file format (${fileExtension}) does not match the chosen format (${format}).`);
+                fileInput.value = ''; // Clear the file input
+            }
+        }
+    }
+
     function validateForm() {
         var borrowPrice = parseFloat(document.getElementById("BorrowPrice").value);
         var buyPrice = parseFloat(document.getElementById("BuyPrice").value);
+        var discountPrice = parseFloat(document.getElementById("DiscountPrice").value);
+        var discountEndDate = new Date(document.getElementById("DiscountEndDate").value);
+        var maxDiscountEndDate = new Date();
+        maxDiscountEndDate.setDate(maxDiscountEndDate.getDate() + 7);
 
         if (buyPrice <= borrowPrice) {
             alert("Buy price must be higher than borrow price.");
             return false;
         }
+
+        if (discountPrice >= buyPrice) {
+            alert("Discount price must be lower than buy price.");
+            return false;
+        }
+
+        if (discountEndDate > maxDiscountEndDate) {
+            alert("Discount end date cannot be more than one week from today.");
+            return false;
+        }
+
         return true;
     }
 </script>
