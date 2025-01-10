@@ -1,7 +1,95 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebook Library</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
 
-<div class="text-center nav-link text-dark">
-    <h1 class="display-4">EnaalAbuk Library</h1>
-</div>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+
+        .hero-btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffffff;
+            background: #ff6b6b;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            text-decoration: none;
+        }
+
+            .hero-btn:hover {
+                background: #ff3b3b;
+            }
+
+        .hero {
+            background: url('/path-to-your-books-background.jpg') no-repeat center center/cover;
+            padding: 100px 20px;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .about-us {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 40px 20px;
+            margin-top: 40px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+        }
+
+        footer {
+            background: #1e2a38;
+            color: #ffffff;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="container">
+            <h1>Welcome to Ebook Library</h1>
+            <p>Discover a world of stories, knowledge, and adventure. Your personal library is just a click away!</p>
+            <a href="/Books" class="hero-btn">Start Exploring</a>
+            <a href="/Books/Library" class="hero-btn">My Library</a>
+        </div>
+    </div>
+
+    <div class="about-us container">
+        <h2>About Us</h2>
+        <p>Welcome to Ebook Library, your ultimate destination for a vast collection of ebooks across various genres. Our platform offers a seamless experience for book lovers to explore, borrow, and purchase their favorite books.</p>
+        <p>We pride ourselves on providing a user-friendly interface, a diverse selection of books, and the convenience of accessing your library from any device. Whether you're into fiction, non-fiction, science, technology, or any other genre, we have something for everyone.</p>
+        <p>Our mission is to make reading accessible and enjoyable for everyone. Join us today and embark on a literary journey like no other!</p>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Ebook Library. All rights reserved.</p>
+    </footer>
+</body>
+</html>

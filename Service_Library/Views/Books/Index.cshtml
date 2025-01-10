@@ -1,4 +1,16 @@
-﻿<!-- Filter Button -->
+﻿@{
+    ViewBag.Title = "Books";
+}
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info alert-info-short">
+        @ViewBag.Message
+    </div>
+}
+
+
+<!-- Filter Button -->
 <div class="position-relative mb-3">
     <button class="btn btn-primary" id="filterToggle">Filter</button>
     <div id="filterPanel" class="p-3 bg-light border rounded position-absolute top-100 w-100 shadow">
@@ -336,8 +348,8 @@
                                 <p><strong>Author:</strong> @book.Author</p>
                                 <p><strong>Publisher:</strong> @book.Publisher</p>
                                 <p><strong>Publishing Year:</strong> @book.YearOfPublishing</p>
-                                <p><strong>Format:</strong> @book.Format</p>
                                 <p><strong>Category:</strong> @book.Category</p>
+
                                 @if (!book.IsBorrowable)
                                 {
                                     <p class="book-price">
@@ -381,22 +393,31 @@
                                 @if (book.IsOwnedByCurrentUser)
                                 {
                                     <p class="text-success"><strong>You own this book!</strong></p>
-                                    <!-- Download Button -->
+                                    <!-- Inside the modal where the download button is located -->
                                     <form method="post" asp-controller="Books" asp-action="DownloadBook">
                                         <input type="hidden" name="bookId" value="@book.BookId" />
+                                        <div class="form-group">
+                                            <label for="downloadFormat">Download Format</label>
+                                            <select class="form-control" id="downloadFormat" name="targetFormat" required>
+                                                <option value="PDF">PDF</option>
+                                                <option value="EPUB">EPUB</option>
+                                                <option value="MOBI">MOBI</option>
+                                                <option value="FB2">FB2</option>
+                                            </select>
+                                        </div>
                                         <button type="submit" class="btn btn-primary">Download</button>
                                     </form>
                                 }
                                 else if (book.IsReservedForCurrentUser)
                                 {
                                     <p class="text-info"><strong>Reserved for You:</strong> You have 24 hours to borrow this book.</p>
-                                    <button class="btn btn-success borrow-button" data-book-id="@book.BookId">Borrow</button>
+                                    <button type="button" class="btn btn-primary borrow-now-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BorrowPrice">Borrow Now</button>
                                     <form method="post" asp-controller="Books" asp-action="LeaveWaitingList">
                                         <input type="hidden" name="bookId" value="@book.BookId" />
                                         <button class="btn btn-warning btn-sm mt-2 release-reservation-button" data-book-id="@book.BookId">Release Reservation</button>
                                     </form>
                                 }
-                                else if (book.IsReservedForOtherUser && User.Identity.IsAuthenticated)
+                                else if (book.IsReservedForOtherUser && User.Identity.IsAuthenticated && !book.IsAlreadyBorrowed)
                                 {
                                     <p class="text-danger"><strong>Reserved:</strong> This book is currently reserved for another user.</p>
                                     @if (!book.IsUserOnWaitingList)
@@ -420,10 +441,19 @@
                                 {
                                     <p class="text-success"><strong>Borrowed:</strong> <span id="remaining-time-@book.BookId">@book.RemainingBorrowTime</span></p>
                                     <button class="btn btn-danger return-button" data-transaction-id="@book.BorrowTransactionId" data-book-id="@book.BookId">Return Book</button>
-                                    <button class="btn btn-primary buy-button mt-2" data-book-id="@book.BookId">Buy Now</button>
-                                    <!-- Download Button -->
+                                    <button type="button" class="btn btn-primary buy-now-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Buy Now</button>
+                                    <!-- Inside the modal where the download button is located -->
                                     <form method="post" asp-controller="Books" asp-action="DownloadBook">
                                         <input type="hidden" name="bookId" value="@book.BookId" />
+                                        <div class="form-group">
+                                            <label for="downloadFormat">Download Format</label>
+                                            <select class="form-control" id="downloadFormat" name="targetFormat" required>
+                                                <option value="PDF">PDF</option>
+                                                <option value="EPUB">EPUB</option>
+                                                <option value="MOBI">MOBI</option>
+                                                <option value="FB2">FB2</option>
+                                            </select>
+                                        </div>
                                         <button type="submit" class="btn btn-primary">Download</button>
                                     </form>
                                 }
@@ -435,7 +465,15 @@
                                     }
                                     else if (book.AvailableCopies > 0 && book.ActiveBorrowCount < 3)
                                     {
-                                        <button class="btn btn-success borrow-button" data-book-id="@book.BookId">Borrow</button>
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <button type="button" class="btn btn-primary borrow-now-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BorrowPrice">Borrow Now</button>
+                                            <button class="btn btn-primary add-borrow-to-cart-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BorrowPrice">Add Borrow to Cart</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-primary" onclick="alert('Please log in to borrow this book.');">Borrow Now</button>
+                                        }
                                     }
                                     else
                                     {
@@ -455,42 +493,52 @@
                                                 Leave Waiting List
                                             </button>
                                         }
+                                    }
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <button type="button" class="btn btn-primary buy-now-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Buy Now</button>
+                                        <button class="btn btn-primary add-to-cart-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Add to Cart</button>
+                                        <button class="btn btn-warning remove-from-cart-button mt-2" data-book-id="@book.BookId">Remove from Cart</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-primary" onclick="alert('Please log in to buy this book.');">Buy Now</button>
                                     }                                    
-                                    <button class="btn btn-primary buy-button mt-2" data-book-id="@book.BookId">Buy Now</button>
-                                    <button class="btn btn-primary add-to-cart-button mt-2" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Add to Cart</button>
-                                    <button class="btn btn-warning remove-from-cart-button mt-2" data-book-id="@book.BookId">Remove from Cart</button>
-                                    <button class="btn btn-danger clear-cart-button mt-2">Clear Cart</button>
-
+                                    <!--<button class="btn btn-danger clear-cart-button mt-2">Clear Cart</button>-->
                                 }
 
-                                <!-- Feedback Section -->
+                               <!-- Feedback Section -->
                                 <hr />
                                 <h5>Book Feedback</h5>
 
                                 <!-- Show existing comments/ratings from all users for this book -->
                                 @if (book.Feedbacks != null && book.Feedbacks.Count > 0)
                                 {
-                                    foreach (var feedback in book.Feedbacks)
-                                    {
-                                        <div class="existing-feedback mb-2">
-                                            <!-- Each feedback might show X stars in display mode -->
-                                            <div class="display-rating">
-                                                @for (int i = 1; i <= 5; i++)
-                                                {
-                                                    <span style="color:@(i <= feedback.Rating ? "gold" : "gray");">&#9733;</span>
-                                                }
+                                    <div id="feedback-container-@book.BookId">
+                                        @foreach (var feedback in book.Feedbacks)
+                                        {
+                                            <div class="existing-feedback mb-2">
+                                                <!-- Each feedback might show X stars in display mode -->
+                                                <div class="display-rating">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        <span style="color:@(i <= feedback.Rating ? "gold" : "gray");">&#9733;</span>
+                                                    }
+                                                </div>
+                                                <!-- Display comment -->
+                                                <p class="mt-1 mb-0"><em>@feedback.Comment</em></p>
+                                                <!-- If you want to show who posted it (first name, last name) and date: -->
+                                                <small>@feedback.FirstName @feedback.LastName on @feedback.Date.ToShortDateString()</small>
+                                                <hr />
                                             </div>
-                                            <!-- Display comment -->
-                                            <p class="mt-1 mb-0"><em>@feedback.Comment</em></p>
-                                            <!-- If you want to show who posted it (first name, last name) and date: -->
-                                            <small>@feedback.FirstName @feedback.LastName on @feedback.Date.ToShortDateString()</small>
-                                            <hr />
-                                        </div>
-                                    }
+                                        }
+                                    </div>
                                 }
                                 else
                                 {
-                                    <p>No feedback yet. Be the first to comment!</p>
+                                    <div id="feedback-container-@book.BookId">
+                                        <p>No feedback yet. Be the first to comment!</p>
+                                    </div>
                                 }
                                 @if (book.IsAlreadyBorrowed || book.IsOwnedByCurrentUser)
                                 {
@@ -505,7 +553,7 @@
                                         </div>
 
                                         <textarea id="feedback-comment-@book.BookId" class="form-control mt-2" rows="3"
-                                                  placeholder="Leave your comment here...">@book.UserComment</textarea>
+                                                    placeholder="Leave your comment here...">@book.UserComment</textarea>
 
                                         <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="@book.BookId">
                                             Submit Feedback
@@ -521,7 +569,7 @@
                                 <!-- Show average rating -->
                                 @if (book.AverageRating > 0)
                                 {
-                                    <div class="average-rating mb-3">
+                                    <div id="average-rating-@book.BookId" class="average-rating mb-3">
                                         <strong>Average Rating:</strong>
                                         @for (int i = 1; i <= 5; i++)
                                         {
@@ -532,17 +580,19 @@
                                 }
                                 else
                                 {
-                                    <div class="average-rating mb-3">
+                                    <div id="average-rating-@book.BookId" class="average-rating mb-3">
                                         <strong>Average Rating:</strong> No ratings yet.
                                     </div>
                                 }
+
+
                             </div>
 
                            
 
                         </div>
 
-                        <!-- Book Image Section -->
+                       <!-- Book Image Section -->
                        @if (book.CoverImage != null)
                         {
                             <div class="book-image-container position-relative" id="modalBookContainer-@book.BookId">
@@ -681,3 +731,4 @@
 
     }
 </div>
+<script src="~/js/site.js"></script>

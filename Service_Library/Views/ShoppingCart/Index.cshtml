@@ -2,26 +2,67 @@
 
 <h2>Shopping Cart</h2>
 
-<table class="table">
+<table class="table table-dark-mode">
     <thead>
         <tr>
+            <th>Cover</th>
             <th>Title</th>
+            <th>Type</th>
             <th>Price</th>
             <th>Quantity</th>
             <th>Total</th>
-            <th></th>
+            <th>Discount Ends In</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.Title</td>
-                <td>$@item.Price</td>
-                <td>@item.Quantity</td>
-                <td>$@(item.Price * item.Quantity)</td>
                 <td>
-                    <button class="btn btn-danger remove-from-cart-button" data-book-id="@item.BookId">Remove</button>
+                    @if (item.Book?.CoverImage != null)
+                    {
+                        <img src="data:image/jpeg;base64,@Convert.ToBase64String(item.Book.CoverImage)" alt="@item.Book.Title" class="book-cover" />
+                    }
+                    else
+                    {
+                        <img src="/images/default-cover.jpg" alt="No cover available" class="book-cover" />
+                    }
+                </td>
+                <td>@item.Book?.Title</td>
+                <td>@item.ItemType</td> <!-- Display the item type -->
+                <td>
+                    @if (item.Book?.DiscountPrice.HasValue == true && item.Book.DiscountEndDate >= DateTime.Now)
+                    {
+                        <span class="strike-price">$@item.Book.BuyPrice.ToString("F2")</span>
+                        <span class="discount-price">$@item.Book.DiscountPrice.Value.ToString("F2")</span>
+                    }
+                    else
+                    {
+                        <span>$@item.Book?.BuyPrice.ToString("F2")</span>
+                    }
+                </td>
+                <td>@item.Quantity</td>
+                <td>$@((item.Quantity * (item.Book?.DiscountPrice.HasValue == true && item.Book.DiscountEndDate >= DateTime.Now ? item.Book.DiscountPrice.Value : item.Book?.BuyPrice ?? 0)).ToString("F2"))</td>
+                <td>
+                    @if (item.Book?.DiscountEndDate.HasValue == true && item.Book.DiscountEndDate >= DateTime.Now)
+                    {
+                        var timeLeft = item.Book.DiscountEndDate.Value - DateTime.Now;
+                        <span class="countdown-timer countdown-timer-dark-mode"
+                              data-days="@timeLeft.Days"
+                              data-hours="@timeLeft.Hours"
+                              data-minutes="@timeLeft.Minutes"
+                              data-seconds="@timeLeft.Seconds">
+                            @timeLeft.Days days @timeLeft.Hours:@timeLeft.Minutes:@timeLeft.Seconds left
+                        </span>
+                    }
+                    else
+                    {
+                        <span>N/A</span>
+                    }
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger remove-button" data-book-id="@item.BookId" data-item-type="@item.ItemType">Remove</button>
                 </td>
             </tr>
         }
@@ -33,5 +74,75 @@
     <button class="btn btn-danger clear-cart-button">Clear Cart</button>
 }
 
-<button class="btn btn-success purchase-button">Purchase</button>
+@{
+    var totalAmount = Model.Sum(item => item.Quantity * (item.Book?.DiscountPrice.HasValue == true && item.Book.DiscountEndDate >= DateTime.Now ? item.Book.DiscountPrice.Value : item.Book?.BuyPrice ?? 0));
+    var totalItems = Model.Sum(item => item.Quantity);
+}
 
+<div class="cart-summary cart-summary-dark-mode">
+    <p><strong>Total Items:</strong> @totalItems</p>
+    <p><strong>Total Price:</strong> $@totalAmount.ToString("F2")</p>
+</div>
+
+<form method="post" asp-controller="Payment" asp-action="CreateOrder">
+    <input type="hidden" name="amount" value="@totalAmount.ToString("F2")" />
+    <button type="submit" class="btn btn-success purchase-button" data-total-amount="@totalAmount.ToString("F2")">Purchase</button>
+</form>
+
+<!-- Include site.js -->
+<script src="/js/site.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const removeButtons = document.querySelectorAll('.remove-button');
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const bookId = this.getAttribute('data-book-id');
+                const itemType = this.getAttribute('data-item-type');
+                fetch('/ShoppingCart/Remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ BookId: bookId, ItemType: itemType })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    });
+</script>
+
+<style>
+    .book-cover {
+        width: 50px;
+        height: 75px;
+        object-fit: cover;
+    }
+
+    .strike-price {
+        text-decoration: line-through;
+        color: gray;
+    }
+
+    .discount-price {
+        color: Red;
+        font-weight: bold;
+    }
+
+    .cart-summary {
+        margin-top: 20px;
+    }
+
+    .countdown-timer {
+        font-weight: bold;
+        color: orange;
+    }
+</style>

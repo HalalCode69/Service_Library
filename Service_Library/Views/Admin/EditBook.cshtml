@@ -141,12 +141,12 @@
     function validateFileFormat() {
         const fileInput = document.getElementById('BookContent');
         const file = fileInput.files[0];
-        const format = document.getElementById('Format').value.toLowerCase();
+        const allowedFormats = ['pdf', 'epub', 'mobi', 'fb2'];
 
         if (file) {
             const fileExtension = file.name.split('.').pop().toLowerCase();
-            if (fileExtension !== format) {
-                alert(`Selected file format (${fileExtension}) does not match the chosen format (${format}).`);
+            if (!allowedFormats.includes(fileExtension)) {
+                alert(`Invalid file format (${fileExtension}). Please upload a file in one of the following formats: ${allowedFormats.join(', ')}.`);
                 fileInput.value = ''; // Clear the file input
             }
         }
@@ -178,3 +178,4 @@
         return true;
     }
 </script>
+

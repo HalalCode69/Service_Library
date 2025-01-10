@@ -4,6 +4,10 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Service_Library.Entities;
 using Service_Library.Services;
+using PayPalCheckoutSdk.Core;
+using PayPalCheckoutSdk.Orders;
+using Microsoft.Extensions.Options;
+using Service_Library.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,10 +33,13 @@ builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpS
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddTransient<ReminderService>();
 
+// Add PayPal settings
+builder.Services.Configure<PayPalSettings>(builder.Configuration.GetSection("PayPalSettings"));
+builder.Services.AddTransient<PayPalService>();
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
-
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

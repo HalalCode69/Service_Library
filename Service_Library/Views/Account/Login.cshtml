@@ -2,9 +2,18 @@
 
 @{
     ViewData["Title"] = "Login";
+    var message = ViewBag.Message;
+    var email = ViewBag.Email;
 }
 
 <h1>Login</h1>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info alert-info-short">
+        @message
+    </div>
+}
 
 <hr />
 <div class="row">
@@ -13,7 +22,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
+                <input asp-for="Email" class="form-control" value="@email" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -29,9 +38,11 @@
 </div>
 
 <div>
-    Don't have an account? <a asp-action="Registration">Go To Registration</a>'
+    Don't have an account? <a asp-action="Registration">Go To Registration</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

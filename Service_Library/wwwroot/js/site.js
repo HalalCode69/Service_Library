@@ -1,4 +1,42 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
+    const countdownElements = document.querySelectorAll('.countdown-timer');
+
+    countdownElements.forEach(timer => {
+        // Parse initial data from attributes
+        let days = parseInt(timer.getAttribute('data-days'));
+        let hours = parseInt(timer.getAttribute('data-hours'));
+        let minutes = parseInt(timer.getAttribute('data-minutes'));
+        let seconds = parseInt(timer.getAttribute('data-seconds'));
+
+        const updateTimer = () => {
+            if (seconds > 0) {
+                seconds--;
+            } else if (minutes > 0) {
+                seconds = 59;
+                minutes--;
+            } else if (hours > 0) {
+                seconds = 59;
+                minutes = 59;
+                hours--;
+            } else if (days > 0) {
+                seconds = 59;
+                minutes = 59;
+                hours = 23;
+                days--;
+            } else {
+                // Stop countdown if it reaches zero
+                clearInterval(interval);
+                timer.textContent = "Expired";
+                return;
+            }
+
+            // Update the text content
+            timer.textContent = `${days} days ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} left`;
+        };
+
+        // Start countdown with a 1-second interval
+        const interval = setInterval(updateTimer, 1000);
+    });
     initializeEventListeners();
 
     // Ensure books are moved down if filter panel is already open
@@ -84,10 +122,17 @@ function initializeEventListeners() {
         button.removeEventListener("click", handleReleaseReservation);
         button.addEventListener("click", handleReleaseReservation);
     });
+
     // Add to Cart button event listeners
     document.querySelectorAll(".add-to-cart-button").forEach(button => {
         button.removeEventListener("click", handleAddToCart);
         button.addEventListener("click", handleAddToCart);
+    });
+
+    // Add Borrow to Cart button event listeners
+    document.querySelectorAll(".add-borrow-to-cart-button").forEach(button => {
+        button.removeEventListener("click", handleAddBorrowToCart);
+        button.addEventListener("click", handleAddBorrowToCart);
     });
 
     // Remove from Cart button event listeners
@@ -101,6 +146,7 @@ function initializeEventListeners() {
         button.removeEventListener("click", handleClearCart);
         button.addEventListener("click", handleClearCart);
     });
+
     // Feedback submit button(s)
     document.querySelectorAll(".submit-feedback-button").forEach(button => {
         button.removeEventListener("click", handleFeedbackSubmit);
@@ -135,7 +181,250 @@ function initializeEventListeners() {
         applyFiltersButton.removeEventListener("click", applyFilters);
         applyFiltersButton.addEventListener("click", applyFilters);
     }
+    // Buy Now button event listeners
+    document.querySelectorAll(".buy-now-button").forEach(button => {
+        button.removeEventListener("click", handleBuyNow);
+        button.addEventListener("click", handleBuyNow);
+    });
+
+    // Borrow Now button event listeners
+    document.querySelectorAll(".borrow-now-button").forEach(button => {
+        button.removeEventListener("click", handleBorrowNow);
+        button.addEventListener("click", handleBorrowNow);
+    });
 }
+// Buy Now Handler
+function handleBuyNow(event) {
+    event.preventDefault();
+
+    if (!confirm("Are you sure you want to buy this book?")) {
+        return; // Exit the function if the user cancels
+    }
+
+    const button = event.currentTarget;
+    const bookId = button.getAttribute("data-book-id");
+    const bookTitle = button.getAttribute("data-book-title");
+    const bookPrice = button.getAttribute("data-book-price");
+
+    fetch(`/api/Payment/BuyOrBorrowItem`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ bookId: parseInt(bookId), itemType: 'Buy', title: bookTitle, price: parseFloat(bookPrice) })
+    })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => { throw new Error(text || `HTTP error! Status: ${response.status}`); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.approvalUrl) {
+                window.location.href = data.approvalUrl; // Redirect to PayPal for payment
+            } else {
+                alert('An error occurred: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request: ' + error.message);
+        });
+}
+
+// Borrow Now Handler
+function handleBorrowNow(event) {
+    event.preventDefault();
+
+    if (!confirm("Are you sure you want to borrow this book?")) {
+        return; // Exit the function if the user cancels
+    }
+
+    const button = event.currentTarget;
+    const bookId = button.getAttribute("data-book-id");
+    const bookTitle = button.getAttribute("data-book-title");
+    const bookPrice = button.getAttribute("data-book-price");
+
+    fetch(`/api/Payment/BuyOrBorrowItem`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ bookId: parseInt(bookId), itemType: 'Borrow', title: bookTitle, price: parseFloat(bookPrice) })
+    })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => { throw new Error(text || `HTTP error! Status: ${response.status}`); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.approvalUrl) {
+                window.location.href = data.approvalUrl; // Redirect to PayPal for payment
+            } else {
+                alert('An error occurred: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request: ' + error.message);
+        });
+}
+
+
+
+
+
+
+
+
+
+// Borrow Book Handler
+function handleBorrow(event) {
+    event.preventDefault();
+
+    if (!confirm("Are you sure you want to borrow this book?")) {
+        return; // Exit the function if the user cancels
+    }
+
+    const button = event.currentTarget;
+    const bookId = button.getAttribute("data-book-id");
+    button.disabled = true; // Prevent multiple clicks
+
+    fetch(`/Books/BorrowBook`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ bookId })
+    })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error("User not logged in");
+                }
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+
+                // Update the button container dynamically
+                const buttonContainer = document.querySelector(`#button-container-${bookId}`);
+                const returnTimestamp = new Date(data.returnTimestamp);
+
+                buttonContainer.innerHTML = `
+                <p class="text-success"><strong>Borrowed:</strong> <span id="remaining-time-${bookId}"></span></p>
+                <button class="btn btn-danger return-button" data-transaction-id="${data.transactionId}" data-book-id="${bookId}">Return Book</button>
+                <button class="btn btn-primary buy-button mt-2" data-book-id="${bookId}">Buy Now</button>
+                <button class="btn btn-primary download-button mt-2" data-book-id="${bookId}">Download</button>
+                <div class="your-feedback mt-3">
+                    <h6>Your Feedback</h6>
+                    <div class="star-rating" data-book-id="${bookId}" data-selected-rating="0">
+                        <span class="star" data-value="1">&#9733;</span>
+                        <span class="star" data-value="2">&#9733;</span>
+                        <span class="star" data-value="3">&#9733;</span>
+                        <span class="star" data-value="4">&#9733;</span>
+                        <span class="star" data-value="5">&#9733;</span>
+                    </div>
+                    <textarea id="feedback-comment-${bookId}" class="form-control mt-2" rows="3" placeholder="Leave your comment here..."></textarea>
+                    <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="${bookId}">Submit Feedback</button>
+                </div>
+            `;
+
+                // Start the countdown timer
+                startCountdown(`remaining-time-${bookId}`, returnTimestamp);
+
+                // Reinitialize event listeners for new buttons and feedback
+                initializeEventListeners();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            if (error.message === "User not logged in") {
+                alert("Please log in to borrow this book.");
+            } else {
+                alert("An error occurred while processing your request.");
+            }
+        })
+        .finally(() => {
+            button.disabled = false; // Re-enable the button
+        });
+}
+
+// Buy Book Handler
+function handleBuy(event) {
+    event.preventDefault();
+
+    if (!confirm("Are you sure you want to buy this book?")) {
+        return; // Exit the function if the user cancels
+    }
+
+    const button = event.currentTarget;
+    const bookId = button.getAttribute("data-book-id");
+
+    fetch(`/Books/BuyBook`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ bookId: parseInt(bookId) })
+    })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error("User not logged in");
+                }
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+
+                const buttonContainer = document.querySelector(`#button-container-${bookId}`);
+                buttonContainer.innerHTML = `
+                <p class="text-success"><strong>You own this book!</strong></p>
+                <button class="btn btn-primary download-button mt-2" data-book-id="${bookId}">Download</button>
+                <div class="your-feedback mt-3">
+                    <h6>Your Feedback</h6>
+                    <div class="star-rating" data-book-id="${bookId}" data-selected-rating="0">
+                        <span class="star" data-value="1">&#9733;</span>
+                        <span class="star" data-value="2">&#9733;</span>
+                        <span class="star" data-value="3">&#9733;</span>
+                        <span class="star" data-value="4">&#9733;</span>
+                        <span class="star" data-value="5">&#9733;</span>
+                    </div>
+                    <textarea id="feedback-comment-${bookId}" class="form-control mt-2" rows="3" placeholder="Leave your comment here..."></textarea>
+                    <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="${bookId}">Submit Feedback</button>
+                </div>
+            `;
+
+                // Reinitialize event listeners for new buttons and feedback
+                initializeEventListeners();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            if (error.message === "User not logged in") {
+                alert("Please log in to buy this book.");
+            } else {
+                alert("An error occurred while processing your request.");
+            }
+        });
+}
+
 // Handle Add to Cart
 function handleAddToCart(event) {
     event.preventDefault();
@@ -150,7 +439,7 @@ function handleAddToCart(event) {
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest"
         },
-        body: JSON.stringify({ bookId: parseInt(bookId), title: title, price: parseFloat(price) })
+        body: JSON.stringify({ BookId: parseInt(bookId), Title: title, Price: parseFloat(price), ItemType: 'Buy' }) // Set ItemType to 'Buy'
     })
         .then(response => response.json())
         .then(data => {
@@ -165,6 +454,56 @@ function handleAddToCart(event) {
             alert("An error occurred while adding to the cart.");
         });
 }
+
+// Handle Add Borrow to Cart
+function handleAddBorrowToCart(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const bookId = button.getAttribute("data-book-id");
+    const title = button.getAttribute("data-book-title"); // Ensure this attribute is set
+    const price = button.getAttribute("data-book-price"); // Ensure this attribute is set
+
+    fetch(`/ShoppingCart/GetBorrowCount`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            const totalBorrowed = data.borrowedCount + data.cartBorrowCount;
+            if (totalBorrowed >= 3) {
+                alert("You can only borrow up to 3 books at the same time.");
+            } else {
+                fetch(`/ShoppingCart/Add`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify({ BookId: parseInt(bookId), Title: title, Price: parseFloat(price), ItemType: 'Borrow' }) // Set ItemType to 'Borrow'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error adding to cart:", error);
+                        alert("An error occurred while adding to the cart.");
+                    });
+            }
+        })
+        .catch(error => {
+            console.error("Error checking borrow count:", error);
+            alert("An error occurred while checking the borrow count.");
+        });
+}
+
 
 
 // Handle Remove from Cart
@@ -220,6 +559,7 @@ function handleClearCart(event) {
             alert("An error occurred while clearing the cart.");
         });
 }
+
 // Toggle Filter Panel and Move Books Down
 function toggleFilter() {
     const filterPanel = document.getElementById('filterPanel');
@@ -316,160 +656,6 @@ function filterByAvailability(availability) {
 }
 
 
-
-
-
-
-
-
-// Borrow Book Handler
-function handleBorrow(event) {
-    event.preventDefault();
-
-    if (!confirm("Are you sure you want to borrow this book?")) {
-        return; // Exit the function if the user cancels
-    }
-
-    const button = event.currentTarget;
-    const bookId = button.getAttribute("data-book-id");
-    button.disabled = true; // Prevent multiple clicks
-
-    fetch(`/Books/BorrowBook`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest"
-        },
-        body: JSON.stringify({ bookId })
-    })
-        .then(response => {
-            if (!response.ok) {
-                if (response.status === 401) {
-                    throw new Error("User not logged in");
-                }
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-
-                // Update the button container dynamically
-                const buttonContainer = document.querySelector(`#button-container-${bookId}`);
-                const returnTimestamp = new Date(data.returnTimestamp);
-
-                buttonContainer.innerHTML = `
-                <p class="text-success"><strong>Borrowed:</strong> <span id="remaining-time-${bookId}"></span></p>
-                <button class="btn btn-danger return-button" data-transaction-id="${data.transactionId}" data-book-id="${bookId}">Return Book</button>
-                <button class="btn btn-primary buy-button mt-2" data-book-id="${bookId}">Buy Now</button>
-                <button class="btn btn-primary download-button mt-2" data-book-id="${bookId}">Download</button>
-                <div class="your-feedback mt-3">
-                    <h6>Your Feedback</h6>
-                    <div class="star-rating" data-book-id="${bookId}" data-selected-rating="0">
-                        <span class="star" data-value="1">&#9733;</span>
-                        <span class="star" data-value="2">&#9733;</span>
-                        <span class="star" data-value="3">&#9733;</span>
-                        <span class="star" data-value="4">&#9733;</span>
-                        <span class="star" data-value="5">&#9733;</span>
-                    </div>
-                    <textarea id="feedback-comment-${bookId}" class="form-control mt-2" rows="3" placeholder="Leave your comment here..."></textarea>
-                    <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="${bookId}">Submit Feedback</button>
-                </div>
-            `;
-
-                // Start the countdown timer
-                startCountdown(`remaining-time-${bookId}`, returnTimestamp);
-
-                // Reinitialize event listeners for new buttons and feedback
-                initializeEventListeners();
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            if (error.message === "User not logged in") {
-                alert("Please log in to borrow this book.");
-            } else {
-                alert("An error occurred while processing your request.");
-            }
-        })
-        .finally(() => {
-            button.disabled = false; // Re-enable the button
-        });
-}
-
-
-
-// Buy Book Handler
-function handleBuy(event) {
-    event.preventDefault();
-
-    if (!confirm("Are you sure you want to buy this book?")) {
-        return; // Exit the function if the user cancels
-    }
-
-    const button = event.currentTarget;
-    const bookId = button.getAttribute("data-book-id");
-
-    fetch(`/Books/BuyBook`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest"
-        },
-        body: JSON.stringify({ bookId: parseInt(bookId) })
-    })
-        .then(response => {
-            if (!response.ok) {
-                if (response.status === 401) {
-                    throw new Error("User not logged in");
-                }
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-
-                const buttonContainer = document.querySelector(`#button-container-${bookId}`);
-                buttonContainer.innerHTML = `
-                <p class="text-success"><strong>You own this book!</strong></p>
-                <button class="btn btn-primary download-button mt-2" data-book-id="${bookId}">Download</button>
-                <div class="your-feedback mt-3">
-                    <h6>Your Feedback</h6>
-                    <div class="star-rating" data-book-id="${bookId}" data-selected-rating="0">
-                        <span class="star" data-value="1">&#9733;</span>
-                        <span class="star" data-value="2">&#9733;</span>
-                        <span class="star" data-value="3">&#9733;</span>
-                        <span class="star" data-value="4">&#9733;</span>
-                        <span class="star" data-value="5">&#9733;</span>
-                    </div>
-                    <textarea id="feedback-comment-${bookId}" class="form-control mt-2" rows="3" placeholder="Leave your comment here..."></textarea>
-                    <button type="button" class="btn btn-info mt-2 submit-feedback-button" data-book-id="${bookId}">Submit Feedback</button>
-                </div>
-            `;
-
-                // Reinitialize event listeners for new buttons and feedback
-                initializeEventListeners();
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            if (error.message === "User not logged in") {
-                alert("Please log in to buy this book.");
-            } else {
-                alert("An error occurred while processing your request.");
-            }
-        });
-}
-
-
-
 function handleDownload(event) {
     event.preventDefault();
 
@@ -515,14 +701,6 @@ function handleDownload(event) {
             alert("An error occurred while downloading the book.");
         });
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -601,22 +779,29 @@ function handleReturn(event) {
             if (data.success) {
                 alert(data.message);
 
-                const buttonContainer = document.querySelector(`#button-container-${bookId}`);
-                buttonContainer.innerHTML = `
-                <button class="btn btn-success borrow-button" data-book-id="${bookId}">Borrow</button>
-                <button class="btn btn-primary buy-button mt-2" data-book-id="${bookId}">Buy Now</button>
-                `;
-
-                initializeEventListeners();
+                // Redirect based on the referrer
+                if (document.referrer.includes('/Books')) {
+                    window.location.href = '/Books';
+                } else if (document.referrer.includes('/Library')) {
+                    window.location.href = '/Library';
+                } else {
+                    window.location.href = '/'; // Default redirect
+                }
             } else {
                 alert(data.message);
             }
         })
         .catch(error => {
             console.error("Error:", error);
-            alert("An error occurred while processing your request.");
+            alert("An error occurred while processing your request: " + error.message);
         });
 }
+
+
+
+
+
+
 
 function confirmReturnBook(transactionId, bookId) {
     if (confirm("Are you sure you want to return this book?")) {
@@ -751,31 +936,14 @@ function handleReleaseReservation(event) {
             if (data.success) {
                 alert(data.message);
 
-                const buttonContainer = document.querySelector(`#button-container-${bookId}`);
-                if (buttonContainer) {
-                    if (data.isReserved) {
-                        // If reserved for another user
-                        buttonContainer.innerHTML = `
-                            <p class="text-danger"><strong>Reserved:</strong> This book is currently reserved for another user.</p>
-                        `;
-                    } else if (data.waitingListCount > 0) {
-                        // If waiting list exists
-                        buttonContainer.innerHTML = `
-                            <p class="text-info">Users in Waitlist for borrow: ${data.waitingListCount}</p>
-                            <button class="btn btn-warning btn-sm join-waiting-list-button" data-book-id="${bookId}">
-                                Join Waiting List
-                            </button>
-                        `;
-                    } else {
-                        // If no reservation or waiting list, show "Borrow" and "Buy Now" buttons
-                        buttonContainer.innerHTML = `
-                            <button class="btn btn-success borrow-button" data-book-id="${bookId}">Borrow</button>
-                            <button class="btn btn-primary buy-button mt-2" data-book-id="${bookId}">Buy Now</button>
-                        `;
-                    }
+                // Redirect based on the referrer
+                if (document.referrer.includes('/Books')) {
+                    window.location.href = '/Books';
+                } else if (document.referrer.includes('/Library')) {
+                    window.location.href = '/Library';
+                } else {
+                    window.location.href = '/'; // Default redirect
                 }
-
-                initializeEventListeners(); // Reinitialize listeners for new buttons
             } else {
                 alert(data.message); // Show error message from the server
             }
@@ -788,6 +956,9 @@ function handleReleaseReservation(event) {
             button.disabled = false; // Re-enable button
         });
 }
+
+
+
 
 // Countdown Function
 function startCountdown(elementId, returnTimestamp) {
@@ -906,25 +1077,48 @@ function handleFeedbackSubmit(event) {
     })
         .then(response => response.json())
         .then(data => {
-        if (data.success) {
-            alert(data.message);
-            // Example approach: re-fetch the updated feedback or just do an inline update
-            const feedbackContainer = document.querySelector("#feedback-container-" + bookId);
-            const newFeedbackHtml = `
-                <div class="existing-feedback mb-2">
-                    <div class="display-rating">
-                        <!-- etc. star loop from data.rating -->
-                    </div>
-                    <p class="mt-1 mb-0"><em>${commentText}</em></p>
-                    <small class="text-muted">You on ${new Date().toLocaleDateString()}</small>
-                    <hr />
-                </div>
-            `;
-            feedbackContainer.insertAdjacentHTML("beforeend", newFeedbackHtml);
-        }
-        else {
+            if (data.success) {
                 alert(data.message);
-                // Optionally reload the page or dynamically refresh the feedback list
+                // Example approach: re-fetch the updated feedback or just do an inline update
+                const feedbackContainer = document.querySelector(`#feedback-container-${bookId}`);
+                if (feedbackContainer) {
+                    // Check if the user has already posted feedback
+                    const existingFeedback = feedbackContainer.querySelector('.existing-feedback[data-user-id="current-user"]');
+                    const newFeedbackHtml = `
+                        <div class="existing-feedback mb-2" data-user-id="current-user">
+                            <div class="display-rating">
+                                ${Array.from({ length: 5 }, (_, i) => `<span style="color:${i < ratingVal ? "gold" : "gray"};">&#9733;</span>`).join('')}
+                            </div>
+                            <p class="mt-1 mb-0"><em>${commentText}</em></p>
+                            <small class="text-muted">You on ${new Date().toLocaleDateString()}</small>
+                            <hr />
+                        </div>
+                    `;
+
+                    if (existingFeedback) {
+                        // Update existing feedback
+                        existingFeedback.innerHTML = newFeedbackHtml;
+                    } else {
+                        // Add new feedback
+                        feedbackContainer.insertAdjacentHTML("beforeend", newFeedbackHtml);
+                    }
+
+                    // Update the average rating dynamically
+                    const averageRatingContainer = document.querySelector(`#average-rating-${bookId}`);
+                    if (averageRatingContainer) {
+                        const newAverageRating = data.averageRating; // Assuming the server returns the new average rating
+                        const ratingCount = data.ratingCount; // Assuming the server returns the new rating count
+                        averageRatingContainer.innerHTML = `
+                            <strong>Average Rating:</strong>
+                            ${Array.from({ length: 5 }, (_, i) => `<span style="color:${i < Math.round(newAverageRating) ? "gold" : "gray"};">&#9733;</span>`).join('')}
+                            <small>(${ratingCount} ratings)</small>
+                        `;
+                    }
+                } else {
+                    console.error("Feedback container not found.");
+                }
+            } else {
+                alert(data.message);
             }
         })
         .catch(error => {
@@ -932,3 +1126,6 @@ function handleFeedbackSubmit(event) {
             alert("An error occurred while processing your request.");
         });
 }
+
+
+

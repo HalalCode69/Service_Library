@@ -105,3 +105,19 @@ body.dark-mode {
             background-color: #555555;
             border-color: #666666;
         }
+
+/* Dark Mode for Shopping Cart */
+.table-dark-mode {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border-color: #444444;
+}
+
+.cart-summary-dark-mode {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+.countdown-timer-dark-mode {
+    color: orange;
+}

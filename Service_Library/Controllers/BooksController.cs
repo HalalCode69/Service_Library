@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Service_Library.Entities;
 using Service_Library.Models;
 using Service_Library.Services;
+using System.Diagnostics;
 using System.Security.Claims;
 
 namespace Service_Library.Controllers
@@ -20,8 +21,12 @@ namespace Service_Library.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index(string search, string categoryFilter, string formatFilter, string sort, bool? onSale, string availability, string authorFilter, decimal? priceRangeMin, decimal? priceRangeMax)
+        public IActionResult Index(string message, string search, string categoryFilter, string formatFilter, string sort, bool? onSale, string availability, string authorFilter, decimal? priceRangeMin, decimal? priceRangeMax)
         {
+            if (!string.IsNullOrEmpty(message))
+            {
+                ViewBag.Message = message;
+            }
             var booksQuery = _context.Books.AsQueryable();
 
             // Calculate overall min and max prices
@@ -437,22 +442,6 @@ namespace Service_Library.Controllers
                 return Json(new { success = false, message = "An error occurred while processing your request." });
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         public class BorrowBookRequest
@@ -1060,6 +1049,9 @@ namespace Service_Library.Controllers
                     _context.Feedbacks.Add(newFeedback);
                 }
 
+                // Save changes to ensure feedback is stored before calculating the average rating
+                _context.SaveChanges();
+
                 // Update the average rating and rating count
                 var allFeedbacksForBook = _context.Feedbacks
                     .Where(f => f.BookId == request.BookId)
@@ -1077,7 +1069,7 @@ namespace Service_Library.Controllers
                 book.RatingCount = newCount;
                 book.AverageRating = newAvg;
 
-                // Save changes
+                // Save changes to update the book entity
                 _context.SaveChanges();
 
                 return Json(new
@@ -1097,16 +1089,53 @@ namespace Service_Library.Controllers
         }
 
 
+
         [HttpPost]
-        public IActionResult DownloadBook(int bookId)
+        public IActionResult DownloadBook(int bookId, string targetFormat)
         {
             var book = _context.Books.FirstOrDefault(b => b.BookId == bookId);
             if (book == null || book.BookContent == null)
             {
-                return NotFound();
+                return NotFound("Book or its content not found.");
             }
 
-            string contentType = book.Format switch
+            // Validate target format
+            if (string.IsNullOrEmpty(targetFormat))
+            {
+                return BadRequest("Target format is required.");
+            }
+
+            targetFormat = targetFormat.ToUpper();
+            var validFormats = new[] { "PDF", "EPUB", "MOBI", "FB2" };
+            if (!validFormats.Contains(targetFormat))
+            {
+                return BadRequest("Invalid format requested.");
+            }
+
+            // Define the original content and format
+            var originalFormat = book.Format.ToUpper();
+            var originalContent = book.BookContent; // Stored book content as a byte array
+
+            // Convert if necessary
+            byte[] convertedContent;
+            if (originalFormat == targetFormat)
+            {
+                convertedContent = originalContent;
+            }
+            else
+            {
+                try
+                {
+                    convertedContent = ConvertBookFormat(originalContent, originalFormat, targetFormat);
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, $"Error during conversion: {ex.Message}");
+                }
+            }
+
+            // Set the content type for the download
+            string contentType = targetFormat switch
             {
                 "PDF" => "application/pdf",
                 "EPUB" => "application/epub+zip",
@@ -1115,12 +1144,34 @@ namespace Service_Library.Controllers
                 _ => "application/octet-stream"
             };
 
-            var fileName = $"{book.Title}.{book.Format.ToLower()}";
+            var fileName = $"{book.Title}.{targetFormat.ToLower()}";
             Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
 
-            return File(book.BookContent, contentType, fileName);
+            return File(convertedContent, contentType, fileName);
         }
 
+        // Conversion helper method
+        public byte[] ConvertBookFormat(byte[] originalContent, string originalFormat, string targetFormat)
+        {
+            using (var stream = new MemoryStream(originalContent))
+            {
+                var document = new Aspose.Words.Document(stream);
+
+                using (var outputStream = new MemoryStream())
+                {
+                    var saveFormat = targetFormat.ToUpper() switch
+                    {
+                        "PDF" => Aspose.Words.SaveFormat.Pdf,
+                        "EPUB" => Aspose.Words.SaveFormat.Epub,
+                        "MOBI" => Aspose.Words.SaveFormat.Mhtml, // Save MHTML as MOBI manually
+                        _ => throw new NotSupportedException("Unsupported target format.")
+                    };
+
+                    document.Save(outputStream, saveFormat);
+                    return outputStream.ToArray();
+                }
+            }
+        }
 
 
 
@@ -1141,6 +1192,46 @@ namespace Service_Library.Controllers
 
             return Json(suggestions);
         }
+        [HttpGet]
+        public IActionResult RedirectToPayPal(int bookId, string bookTitle, decimal bookPrice)
+        {
+            // Construct the PayPal URL
+            var paypalUrl = $"https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=your-paypal-email@example.com&item_name={bookTitle}&amount={bookPrice}&currency_code=USD&return=https://yourwebsite.com/Books/CompletePurchase?bookId={bookId}&cancel_return=https://yourwebsite.com/Books/CancelPurchase";
 
+            return Redirect(paypalUrl);
+        }
+
+        [HttpGet]
+        public IActionResult CompletePurchase(int bookId)
+        {
+            // Update the database to mark the book as purchased
+            var book = _context.Books.Find(bookId);
+            if (book != null)
+            {
+                book.IsOwnedByCurrentUser = true;
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public IActionResult CancelPurchase()
+        {
+            // Handle purchase cancellation
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBookCover(int id)
+        {
+            var book = await _context.Books.FindAsync(id);
+            if (book == null || book.BookContent == null)
+            {
+                return NotFound();
+            }
+
+            return File(book.BookContent, "image/jpeg"); // Adjust the content type as needed
+        }
     }
 }

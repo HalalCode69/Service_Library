@@ -18,6 +18,9 @@
         'text-info': 'text-info-dark-mode',
         'navbar-nav': 'navbar-nav-dark-mode',
         'btn': 'btn-dark-mode',
+        'table': 'table-dark-mode', // Added for shopping cart table
+        'cart-summary': 'cart-summary-dark-mode', // Added for cart summary
+        'countdown-timer': 'countdown-timer-dark-mode' // Added for countdown timer
     };
 
     // Apply Dark Mode
@@ -59,16 +62,22 @@
     // Initialize Dark Mode Based on Local Storage
     if (localStorage.getItem('darkMode') === 'enabled') {
         applyDarkMode();
-        darkModeSwitch.checked = true;
+        if (darkModeSwitch) {
+            darkModeSwitch.checked = true;
+        }
+    } else {
+        removeDarkMode();
     }
 
-    darkModeSwitch.addEventListener('change', function () {
-        if (darkModeSwitch.checked) {
-            applyDarkMode();
-            localStorage.setItem('darkMode', 'enabled');
-        } else {
-            removeDarkMode();
-            localStorage.setItem('darkMode', 'disabled');
-        }
-    });
+    if (darkModeSwitch) {
+        darkModeSwitch.addEventListener('change', function () {
+            if (darkModeSwitch.checked) {
+                applyDarkMode();
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                removeDarkMode();
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        });
+    }
 });

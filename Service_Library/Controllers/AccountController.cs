@@ -30,34 +30,49 @@ namespace Service_Library.Controllers
         {
             if (ModelState.IsValid)
             {
-                UserAccount acc = new UserAccount();
-                acc.FirstName = model.FirstName;
-                acc.LastName = model.LastName;
-                acc.Email = model.Email;
-                acc.Password = model.Password;
+                UserAccount acc = new UserAccount
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Email = model.Email,
+                    Password = model.Password
+                };
                 try
                 {
                     _context.UserAccounts.Add(acc);
                     _context.SaveChanges();
 
                     ModelState.Clear();
-                    ViewBag.Message = $"Registration Successful";
+                    // Redirect to login page with a message and email
+                    return RedirectToAction("Login", "Account", new { message = "Registration successful. Please log in.", email = model.Email });
                 }
-                catch (DbUpdateException ex)
+                catch (DbUpdateException)
                 {
                     ModelState.AddModelError("", "Email already exists");
                     return View(model);
                 }
-                return View();
-
             }
             return View(model);
         }
-       
-        public IActionResult Login()
+
+
+
+        public IActionResult Login(string message = null, string email = null)
         {
+            if (!string.IsNullOrEmpty(message))
+            {
+                ViewBag.Message = message;
+            }
+
+            if (!string.IsNullOrEmpty(email))
+            {
+                ViewBag.Email = email;
+            }
+
             return View();
         }
+
+
         [HttpPost]
         public IActionResult Login(LoginViewModel model)
         {

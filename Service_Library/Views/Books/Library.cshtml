@@ -298,13 +298,22 @@
                             <p><strong>Author:</strong> @book.Author</p>
                             <p><strong>Publisher:</strong> @book.Publisher</p>
                             <p><strong>Publishing Year:</strong> @book.YearOfPublishing</p>
-                            <p><strong>Format:</strong> @book.Format</p>
                             <p><strong>Category:</strong> @book.Category</p>
-                            <!-- Download Button -->
+                            <!-- Inside the modal where the download button is located -->
                             <form method="post" asp-controller="Books" asp-action="DownloadBook">
                                 <input type="hidden" name="bookId" value="@book.BookId" />
+                                <div class="form-group">
+                                    <label for="downloadFormat">Download Format</label>
+                                    <select class="form-control" id="downloadFormat" name="targetFormat" required>
+                                        <option value="PDF">PDF</option>
+                                        <option value="EPUB">EPUB</option>
+                                        <option value="MOBI">MOBI</option>
+                                        <option value="FB2">FB2</option>
+                                    </select>
+                                </div>
                                 <button type="submit" class="btn btn-primary">Download</button>
                             </form>
+
                             @if (!string.IsNullOrEmpty(book.RemainingBorrowTime))
                             {
                                 <p class="text-danger">Borrow Time Remaining: @book.RemainingBorrowTime</p>

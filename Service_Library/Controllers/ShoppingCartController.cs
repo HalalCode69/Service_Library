@@ -25,6 +25,10 @@ namespace Service_Library.Controllers
                 return Unauthorized();
             }
 
+            var cartItems = await _context.ShoppingCartItems
+                .Include(item => item.Book) // Eagerly load the Book navigation property
+                .Where(item => item.UserId == userId)
+                .ToListAsync();
             var items = await _context.ShoppingCartItems
                 .Where(item => item.UserId == userId)
                 .ToListAsync();
@@ -41,14 +45,37 @@ namespace Service_Library.Controllers
                     return Json(new { success = false, message = "Title is required." });
                 }
 
+                if (string.IsNullOrEmpty(cartItemDto.ItemType))
+                {
+                    return Json(new { success = false, message = "ItemType is required." });
+                }
+
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
                 if (userIdString == null || !int.TryParse(userIdString, out int userId))
                 {
                     return Unauthorized();
                 }
 
+                // Check if the user has already borrowed 3 books
+                if (cartItemDto.ItemType == "Borrow")
+                {
+                    var borrowedCount = _context.BorrowTransactions
+                        .Count(bt => bt.UserId == userId && !bt.IsReturned);
+
+                    if (borrowedCount >= 3)
+                    {
+                        return Json(new { success = false, message = "You can borrow up to 3 books at the same time." });
+                    }
+                }
+
+                var book = _context.Books.FirstOrDefault(b => b.BookId == cartItemDto.BookId);
+                if (book == null)
+                {
+                    return NotFound();
+                }
+
                 var item = _context.ShoppingCartItems
-                    .FirstOrDefault(i => i.UserId == userId && i.BookId == cartItemDto.BookId);
+                    .FirstOrDefault(i => i.UserId == userId && i.BookId == cartItemDto.BookId && i.ItemType == cartItemDto.ItemType);
 
                 if (item == null)
                 {
@@ -57,7 +84,8 @@ namespace Service_Library.Controllers
                         UserId = userId,
                         BookId = cartItemDto.BookId,
                         Title = cartItemDto.Title,
-                        Price = cartItemDto.Price,
+                        Price = cartItemDto.Price, // Use the provided price
+                        ItemType = cartItemDto.ItemType, // Set the item type
                         Quantity = 1
                     };
                     _context.ShoppingCartItems.Add(item);
@@ -76,6 +104,13 @@ namespace Service_Library.Controllers
                 return Json(new { success = false, message = $"An error occurred while adding to the cart: {innerException}" });
             }
         }
+
+
+
+
+
+
+
 
         [HttpPost]
         public IActionResult Remove([FromBody] CartItemDto cartItemDto)
@@ -135,6 +170,25 @@ namespace Service_Library.Controllers
                 return Json(new { success = false, message = $"An error occurred while clearing the cart: {innerException}" });
             }
         }
+        [HttpGet]
+        public IActionResult GetBorrowCount()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+            if (userIdString == null || !int.TryParse(userIdString, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var borrowedCount = _context.BorrowTransactions
+                .Count(bt => bt.UserId == userId && !bt.IsReturned);
+
+            var cartBorrowCount = _context.ShoppingCartItems
+                .Count(i => i.UserId == userId && i.ItemType == "Borrow");
+
+            return Json(new { borrowedCount, cartBorrowCount });
+        }
+
+
     }
 
     public class CartItemDto
@@ -142,5 +196,8 @@ namespace Service_Library.Controllers
         public int BookId { get; set; }
         public string Title { get; set; }
         public decimal Price { get; set; }
+        public string ItemType { get; set; } // New property to distinguish between borrow and buy
     }
+
+
 }

@@ -26,6 +26,63 @@ namespace Service_Library.Controllers
             return View(books);
         }
 
+        public IActionResult ManageAccounts()
+        {
+            var users = _context.UserAccounts.ToList();
+            return View(users);
+        }
+
+        [HttpPost]
+        public IActionResult PromoteToAdmin(int id)
+        {
+            var user = _context.UserAccounts.FirstOrDefault(u => u.Id == id);
+            if (user != null)
+            {
+                user.Role = "Admin";
+                _context.SaveChanges();
+            }
+            return RedirectToAction("ManageAccounts");
+        }
+
+        [HttpPost]
+        public IActionResult DemoteToUser(int id)
+        {
+            var user = _context.UserAccounts.FirstOrDefault(u => u.Id == id);
+            if (user != null)
+            {
+                var adminCount = _context.UserAccounts.Count(u => u.Role == "Admin");
+                if (adminCount > 1)
+                {
+                    user.Role = "User";
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    ModelState.AddModelError("", "There must be at least one admin.");
+                }
+            }
+            return RedirectToAction("ManageAccounts");
+        }
+
+        [HttpPost]
+        public IActionResult DeleteUser(int id)
+        {
+            var user = _context.UserAccounts.FirstOrDefault(u => u.Id == id);
+            if (user != null)
+            {
+                var adminCount = _context.UserAccounts.Count(u => u.Role == "Admin");
+                if (user.Role == "Admin" && adminCount <= 1)
+                {
+                    ModelState.AddModelError("", "There must be at least one admin.");
+                }
+                else
+                {
+                    _context.UserAccounts.Remove(user);
+                    _context.SaveChanges();
+                }
+            }
+            return RedirectToAction("ManageAccounts");
+        }
 
         [HttpGet]
         public IActionResult AddBook()
