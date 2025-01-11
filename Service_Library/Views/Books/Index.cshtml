@@ -10,6 +10,7 @@
 }
 
 
+
 <!-- Filter Button -->
 <div class="position-relative mb-3">
     <button class="btn btn-primary" id="filterToggle">Filter</button>
@@ -23,6 +24,18 @@
                 {
                     var isSelected = ViewContext.HttpContext.Request.Query["categoryFilter"] == category ? "selected" : "";
                     @: <option value="@category" @isSelected>@category</option>
+                }
+            </select>
+        </div>
+        <!-- Genres Dropdown -->
+        <div class="mb-3">
+            <label for="genreDropdown" class="form-label">Genres</label>
+            <select id="genreDropdown" class="form-select" multiple>
+                <option value="">All Genres</option>
+                @foreach (var genre in ViewBag.Genres as IEnumerable<string>)
+                {
+                    var isSelected = ViewContext.HttpContext.Request.Query["genreFilter"].Contains(genre) ? "selected" : "";
+                    @: <option value="@genre" @isSelected>@genre</option>
                 }
             </select>
         </div>
@@ -316,18 +329,9 @@
                     }
                 }
 
-                <!-- Waiting List Count -->
-                <p class="text-info">Waiting List: @book.WaitingListCount users</p>
 
-                <!-- User Waiting List Information -->
-                @if (book.IsUserOnWaitingList)
-                {
-                    <p class="text-warning">You are in position: @book.UserWaitingPosition</p>
-                    <form method="post" asp-controller="Books" asp-action="LeaveWaitingList">
-                        <input type="hidden" name="bookId" value="@book.BookId" />
-                        <button type="submit" class="btn btn-danger btn-sm">Leave Waiting List</button>
-                    </form>
-                }
+
+
          
             </div>
 
@@ -349,6 +353,17 @@
                                 <p><strong>Publisher:</strong> @book.Publisher</p>
                                 <p><strong>Publishing Year:</strong> @book.YearOfPublishing</p>
                                 <p><strong>Category:</strong> @book.Category</p>
+                                <p><strong>Genre:</strong> 
+                                @{
+                                    var genreNames = new List<string>();
+                                    foreach (var genre in book.Genres)
+                                    {
+                                        genreNames.Add(genre.Name);
+                                    }
+                                    @string.Join(", ", genreNames)
+                                }
+                                </p>
+
 
                                 @if (!book.IsBorrowable)
                                 {
@@ -430,13 +445,15 @@
                                     }
                                     else
                                     {
-                                        <p id="waiting-list-count-@book.BookId" class="text-warning">You are in position: @book.UserWaitingPosition</p>
+                                        <p id="waiting-list-count-@book.BookId" class="text-warning">You are in position: @book.UserWaitingPosition in the waiting list.</p>
                                         <p class="text-info">Estimated availability: @book.EstimatedAvailabilityInDays days</p>
                                         <button class="btn btn-danger btn-sm leave-waiting-list-button" data-book-id="@book.BookId">
                                             Leave Waiting List
                                         </button>
                                     }
                                 }
+
+
                                 else if (book.IsAlreadyBorrowed)
                                 {
                                     <p class="text-success"><strong>Borrowed:</strong> <span id="remaining-time-@book.BookId">@book.RemainingBorrowTime</span></p>

@@ -49,7 +49,6 @@
             }
 
         .hero {
-            background: url('/path-to-your-books-background.jpg') no-repeat center center/cover;
             padding: 100px 20px;
             text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
         }
@@ -63,12 +62,83 @@
         }
 
         footer {
-            background: #1e2a38;
             color: #ffffff;
             padding: 20px 0;
             text-align: center;
             margin-top: 40px;
         }
+
+        .feedback-form, .rating-form {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+            .feedback-form input, .feedback-form textarea, .rating-form input, .rating-form textarea {
+                width: 100%;
+                padding: 10px;
+                margin: 10px 0;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
+            .feedback-form button, .rating-form button {
+                padding: 10px 20px;
+                background: #ff6b6b;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+                .feedback-form button:hover, .rating-form button:hover {
+                    background: #ff3b3b;
+                }
+
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .star {
+            font-size: 2rem;
+            color: gray;
+            cursor: pointer;
+        }
+
+            .star.selected {
+                color: gold;
+            }
+
+        .comments-section {
+            margin-top: 40px;
+            text-align: left;
+        }
+
+        .comment {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+
+            .comment .rating {
+                color: gold;
+            }
+
+            .comment .text {
+                margin-top: 5px;
+            }
+
+            .comment .user {
+                font-weight: bold;
+            }
+
+            .comment .date {
+                font-size: 0.8rem;
+                color: gray;
+            }
     </style>
 </head>
 <body>
@@ -88,8 +158,136 @@
         <p>Our mission is to make reading accessible and enjoyable for everyone. Join us today and embark on a literary journey like no other!</p>
     </div>
 
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="rating-form container">
+            <h2>Rate Our Website</h2>
+            <form id="websiteRatingForm">
+                <div class="star-rating">
+                    <span class="star" data-value="1">&#9733;</span>
+                    <span class="star" data-value="2">&#9733;</span>
+                    <span class="star" data-value="3">&#9733;</span>
+                    <span class="star" data-value="4">&#9733;</span>
+                    <span class="star" data-value="5">&#9733;</span>
+                </div>
+                <input type="hidden" name="Rating" id="ratingValue" required />
+                <textarea name="Comment" placeholder="Your Comment" rows="5" required></textarea>
+                <button type="submit">Submit Rating</button>
+            </form>
+        </div>
+    }
+
+    <div class="comments-section container">
+        <h2>What users think about our service</h2>
+        <div id="commentsContainer">
+            <!-- Existing comments will be loaded here -->
+        </div>
+    </div>
+
     <footer>
         <p>&copy; 2025 Ebook Library. All rights reserved.</p>
     </footer>
+
+    <script>
+        document.querySelectorAll('.star-rating .star').forEach(star => {
+            star.addEventListener('click', function () {
+                const rating = this.getAttribute('data-value');
+                document.getElementById('ratingValue').value = rating;
+
+                document.querySelectorAll('.star-rating .star').forEach(s => {
+                    s.classList.remove('selected');
+                });
+
+                this.classList.add('selected');
+                this.previousElementSibling?.classList.add('selected');
+                this.previousElementSibling?.previousElementSibling?.classList.add('selected');
+                this.previousElementSibling?.previousElementSibling?.previousElementSibling?.classList.add('selected');
+                this.previousElementSibling?.previousElementSibling?.previousElementSibling?.previousElementSibling?.classList.add('selected');
+            });
+        });
+
+        document.getElementById('websiteRatingForm')?.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const ratingData = {
+                Rating: formData.get('Rating'),
+                Comment: formData.get('Comment')
+            };
+
+            fetch('/Books/SubmitWebsiteRating', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(ratingData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    this.reset();
+                    document.querySelectorAll('.star-rating .star').forEach(star => {
+                        star.classList.remove('selected');
+                    });
+                    loadComments(); // Reload comments after submission
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while submitting your rating.');
+            });
+        });
+
+        function loadComments() {
+            fetch('/Books/GetWebsiteRatings')
+                .then(response => response.json())
+                .then(data => {
+                    const commentsContainer = document.getElementById('commentsContainer');
+                    commentsContainer.innerHTML = '';
+
+                    data.forEach(comment => {
+                        const commentElement = document.createElement('div');
+                        commentElement.classList.add('comment');
+
+                        const ratingElement = document.createElement('div');
+                        ratingElement.classList.add('rating');
+                        for (let i = 1; i <= 5; i++) {
+                            const star = document.createElement('span');
+                            star.innerHTML = '&#9733;';
+                            star.style.color = i <= comment.rating ? 'gold' : 'gray';
+                            ratingElement.appendChild(star);
+                        }
+
+                        const textElement = document.createElement('div');
+                        textElement.classList.add('text');
+                        textElement.innerText = comment.comment;
+
+                        const userElement = document.createElement('div');
+                        userElement.classList.add('user');
+                        userElement.innerText = comment.userName;
+
+                        const dateElement = document.createElement('div');
+                        dateElement.classList.add('date');
+                        dateElement.innerText = new Date(comment.date).toLocaleDateString();
+
+                        commentElement.appendChild(ratingElement);
+                        commentElement.appendChild(textElement);
+                        commentElement.appendChild(userElement);
+                        commentElement.appendChild(dateElement);
+
+                        commentsContainer.appendChild(commentElement);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadComments);
+    </script>
 </body>
 </html>

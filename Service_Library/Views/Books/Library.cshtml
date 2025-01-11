@@ -18,6 +18,18 @@
                 }
             </select>
         </div>
+        <!-- Genres Dropdown -->
+        <div class="mb-3">
+            <label for="genreDropdown" class="form-label">Genres</label>
+            <select id="genreDropdown" class="form-select" multiple>
+                <option value="">All Genres</option>
+                @foreach (var genre in ViewBag.Genres as IEnumerable<string>)
+                {
+                    var isSelected = ViewContext.HttpContext.Request.Query["genreFilter"].Contains(genre) ? "selected" : "";
+                    @: <option value="@genre" @isSelected>@genre</option>
+                }
+            </select>
+        </div>
 
         <!-- Authors Dropdown -->
         <div class="mb-3">
@@ -299,6 +311,16 @@
                             <p><strong>Publisher:</strong> @book.Publisher</p>
                             <p><strong>Publishing Year:</strong> @book.YearOfPublishing</p>
                             <p><strong>Category:</strong> @book.Category</p>
+                            <p><strong>Genre:</strong> 
+                            @{
+                                var genreNames = new List<string>();
+                                foreach (var genre in book.Genres)
+                                {
+                                    genreNames.Add(genre.Name);
+                                }
+                                @string.Join(", ", genreNames)
+                            }
+                            </p>
                             <!-- Inside the modal where the download button is located -->
                             <form method="post" asp-controller="Books" asp-action="DownloadBook">
                                 <input type="hidden" name="bookId" value="@book.BookId" />

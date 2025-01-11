@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Service_Library.Entities;
 using Service_Library.Models;
 
@@ -111,14 +112,41 @@ namespace Service_Library.Controllers
                 "World Cultures", "Zoology"
             };
 
+            ViewBag.Genres = new List<string>
+            {                
+                "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
+                "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
+                "Art", "Art History", "Astrology", "Astronomy", "Biology",
+                "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
+                "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
+                "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
+                "Economics", "Education", "Engineering", "Environment", "Environmental Science",
+                "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
+                "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
+                "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
+                "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
+                "Memoir", "Military", "Mindfulness", "Music", "Mystery",
+                "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
+                "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
+                "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
+                "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
+                "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
+                "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
+                "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
+                "World Cultures", "Zoology"
+            };
 
             return View();
         }
 
-
         [HttpPost]
-        public IActionResult AddBook(Book model, IFormFile CoverImage, IFormFile BookContent)
+        public IActionResult AddBook(Book model, IFormFile CoverImage, IFormFile BookContent, List<string> selectedGenres)
         {
+            if (selectedGenres == null || !selectedGenres.Any())
+            {
+                ModelState.AddModelError("Genres", "Please select at least one genre.");
+            }
+
             if (ModelState.IsValid)
             {
                 // Handle cover image upload
@@ -140,6 +168,8 @@ namespace Service_Library.Controllers
                         model.BookContent = ms.ToArray(); // Convert the file to byte array
                     }
                 }
+                // Add selected genres to the book
+                model.Genres = selectedGenres.Select(g => new Genre { Name = g }).ToList();
 
                 // Save the book in the database
                 _context.Books.Add(model);
@@ -149,43 +179,60 @@ namespace Service_Library.Controllers
 
             // Repopulate categories if validation fails
             ViewBag.Categories = new List<string>
-                {
-                    "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
-                    "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
-                    "Art", "Art History", "Astrology", "Astronomy", "Biology",
-                    "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
-                    "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
-                    "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
-                    "Economics", "Education", "Engineering", "Environment", "Environmental Science",
-                    "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
-                    "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
-                    "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
-                    "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
-                    "Memoir", "Military", "Mindfulness", "Music", "Mystery",
-                    "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
-                    "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
-                    "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
-                    "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
-                    "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
-                    "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
-                    "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
-                    "World Cultures", "Zoology"
-                };
-
+            {
+                "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
+                "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
+                "Art", "Art History", "Astrology", "Astronomy", "Biology",
+                "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
+                "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
+                "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
+                "Economics", "Education", "Engineering", "Environment", "Environmental Science",
+                "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
+                "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
+                "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
+                "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
+                "Memoir", "Military", "Mindfulness", "Music", "Mystery",
+                "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
+                "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
+                "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
+                "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
+                "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
+                "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
+                "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
+                "World Cultures", "Zoology"
+            };
+            ViewBag.Genres = new List<string>
+            {
+                "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
+                "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
+                "Art", "Art History", "Astrology", "Astronomy", "Biology",
+                "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
+                "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
+                "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
+                "Economics", "Education", "Engineering", "Environment", "Environmental Science",
+                "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
+                "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
+                "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
+                "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
+                "Memoir", "Military", "Mindfulness", "Music", "Mystery",
+                "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
+                "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
+                "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
+                "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
+                "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
+                "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
+                "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
+                "World Cultures", "Zoology"
+            };
             return View(model);
         }
-
-
-
-
-
 
 
 
         [HttpGet]
         public IActionResult EditBook(int id)
         {
-            var book = _context.Books.FirstOrDefault(b => b.BookId == id);
+            var book = _context.Books.Include(b => b.Genres).FirstOrDefault(b => b.BookId == id);
             if (book == null) return NotFound();
 
             ViewBag.Categories = new List<string>
@@ -211,18 +258,63 @@ namespace Service_Library.Controllers
                 "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
                 "World Cultures", "Zoology"
             };
-
+                    ViewBag.Genres = new List<string>
+            {
+                "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
+                "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
+                "Art", "Art History", "Astrology", "Astronomy", "Biology",
+                "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
+                "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
+                "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
+                "Economics", "Education", "Engineering", "Environment", "Environmental Science",
+                "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
+                "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
+                "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
+                "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
+                "Memoir", "Military", "Mindfulness", "Music", "Mystery",
+                "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
+                "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
+                "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
+                "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
+                "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
+                "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
+                "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
+                "World Cultures", "Zoology"
+            };
+            ViewBag.SelectedGenres = book.Genres.Select(g => g.Name).ToList() ?? new List<string>();
 
             return View(book);
         }
 
 
-
         [HttpPost]
-        public IActionResult EditBook([Bind("BookId,Title,Author,Publisher,Format,BorrowPrice,BuyPrice,AvailableCopies,IsBorrowable,Category,AgeLimit,YearOfPublishing,DiscountPrice,DiscountEndDate")] Book model, IFormFile? CoverImage, IFormFile? BookContent)
+        public IActionResult EditBook([Bind("BookId,Title,Author,Publisher,Format,BorrowPrice,BuyPrice,AvailableCopies,IsBorrowable,Category,AgeLimit,YearOfPublishing,DiscountPrice,DiscountEndDate")] Book model, IFormFile? CoverImage, IFormFile? BookContent, string selectedGenres)
         {
             // Always populate ViewBag.Categories
             ViewBag.Categories = new List<string>
+            {
+                "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
+                "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
+                "Art", "Art History", "Astrology", "Astronomy", "Biology",
+                "Biography", "Business", "Chemistry", "Children's Books", "Classic Literature",
+                "Comic Books", "Cooking", "Crafts & Hobbies", "Cultural Studies", "Cyberpunk",
+                "Design", "Digital Media", "DIY Projects", "Drama", "Dystopian",
+                "Economics", "Education", "Engineering", "Environment", "Environmental Science",
+                "Epic Fiction", "Espionage", "Esoterica", "Fantasy", "Fantasy Fiction",
+                "Fiction", "Folklore", "Futurism", "Gardening", "Geography",
+                "Graphic Novels", "Health", "Historical Fiction", "History", "Horror",
+                "Humor", "Inspirational", "Legal Thriller", "Linguistics", "Meditation",
+                "Memoir", "Military", "Mindfulness", "Music", "Mystery",
+                "Mythology", "Non-Fiction", "Paleontology", "Paranormal", "Parenting",
+                "Performing Arts", "Personal Development", "Philosophy", "Photography", "Physics",
+                "Poetry", "Politics", "Pop Culture", "Psychology", "Religion",
+                "Romance", "Satire", "Science", "Science Fiction", "Self-Help",
+                "Short Stories", "Social Justice", "Space Exploration", "Spirituality", "Sports",
+                "Survival Stories", "Technology", "Thriller", "Travel", "True Crime",
+                "Urban Fiction", "Vegan Cooking", "War Stories", "Western", "Wine & Spirits",
+                "World Cultures", "Zoology"
+            };
+                    ViewBag.Genres = new List<string>
             {
                 "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
                 "Animal Stories", "Anthology", "Anthropology", "Archaeology", "Architecture",
@@ -263,7 +355,7 @@ namespace Service_Library.Controllers
                 return View(model);
             }
 
-            var existingBook = _context.Books.FirstOrDefault(b => b.BookId == model.BookId);
+            var existingBook = _context.Books.Include(b => b.Genres).FirstOrDefault(b => b.BookId == model.BookId);
             if (existingBook == null)
             {
                 return NotFound();
@@ -304,6 +396,38 @@ namespace Service_Library.Controllers
                 {
                     BookContent.CopyTo(ms);
                     existingBook.BookContent = ms.ToArray(); // Convert the file to byte array
+                }
+            }
+
+            // Update genres
+            existingBook.Genres.Clear();
+            if (!string.IsNullOrEmpty(selectedGenres))
+            {
+                var genres = selectedGenres.Split(',').ToList();
+                foreach (var genre in genres)
+                {
+                    var genreEntity = _context.Genres.FirstOrDefault(g => g.Name == genre);
+                    if (genreEntity != null)
+                    {
+                        existingBook.Genres.Add(genreEntity);
+                    }
+                    else
+                    {
+                        existingBook.Genres.Add(new Genre { Name = genre });
+                    }
+                }
+            }
+            else
+            {
+                // If no genres are selected, default to the category
+                var categoryGenre = _context.Genres.FirstOrDefault(g => g.Name == model.Category);
+                if (categoryGenre != null)
+                {
+                    existingBook.Genres.Add(categoryGenre);
+                }
+                else
+                {
+                    existingBook.Genres.Add(new Genre { Name = model.Category });
                 }
             }
 

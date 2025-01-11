@@ -34,16 +34,6 @@
         <input type="number" class="form-control" id="YearOfPublishing" asp-for="YearOfPublishing" min="0" required />
     </div>
     <div class="form-group">
-        <label for="Format">File Format</label>
-        <select class="form-control" id="Format" asp-for="Format" required>
-            <option value="">-- Select Format --</option>
-            <option value="PDF">PDF</option>
-            <option value="EPUB">EPUB</option>
-            <option value="MOBI">MOBI</option>
-            <option value="FB2">FB2</option>
-        </select>
-    </div>
-    <div class="form-group">
         <label for="AgeLimit">Age Limit</label>
         <input type="number" class="form-control" id="AgeLimit" asp-for="AgeLimit" min="0" value="0" />
     </div>
@@ -78,6 +68,23 @@
         </select>
     </div>
     <div class="form-group">
+        <button type="button" class="btn btn-primary mb-2 genre-button" onclick="toggleGenres()">Select Genres</button>
+        <div id="genreSelection" class="d-none">
+            <label>Genres</label>
+            <div class="genres-grid">
+                @foreach (var genre in ViewBag.Genres as List<string>)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="genre-@genre" name="genreCheckbox" value="@genre" />
+                        <label class="form-check-label" for="genre-@genre">@genre</label>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="SelectedGenres" name="SelectedGenres" />
+
+    <div class="form-group">
         <label for="IsBorrowable">Is Borrowable?</label>
         <select class="form-control" id="IsBorrowable" asp-for="IsBorrowable" required>
             <option value="true">Yes</option>
@@ -90,12 +97,43 @@
     </div>
     <div class="form-group">
         <label for="BookContent">Book Content</label>
-        <input type="file" class="form-control-file" id="BookContent" name="BookContent" accept=".pdf,.epub,.mobi,.fb2" onchange="validateFileFormat()" required />
+        <input type="file" class="form-control-file" id="BookContent" name="BookContent" accept=".pdf,.epub,.mobi,.fb2" onchange="setFileFormat()" required />
+        <input type="hidden" id="Format" name="Format" asp-for="Format" />
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
 
+<!-- JavaScript to Preview New Image and Validate File Format -->
 <script>
+    function updateSelectedGenres() {
+        const selectedGenres = Array.from(document.querySelectorAll('input[name="genreCheckbox"]:checked')).map(checkbox => checkbox.value);
+        document.getElementById('SelectedGenres').value = selectedGenres.join(',');
+    }
+
+    function setFileFormat() {
+        const fileInput = document.getElementById('BookContent');
+        const file = fileInput.files[0];
+        if (file) {
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            document.getElementById('Format').value = fileExtension;
+        }
+    }
+
+    function previewImage(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            const preview = document.getElementById('newCoverPreview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
+
     function validateFileFormat() {
         const fileInput = document.getElementById('BookContent');
         const file = fileInput.files[0];
@@ -133,6 +171,41 @@
             return false;
         }
 
+        updateSelectedGenres();
+
+        const selectedGenres = document.getElementById('SelectedGenres').value;
+        if (selectedGenres.length === 0) {
+            alert("Please select at least one genre.");
+            return false;
+        }
+
+        const format = document.getElementById('Format').value;
+        if (!format) {
+            alert("Please choose book content.");
+            return false;
+        }
+
         return true;
     }
+
+    function toggleGenres() {
+        const genreDiv = document.getElementById('genreSelection');
+        genreDiv.classList.toggle('d-none');
+    }
 </script>
+<style>
+    .genre-button {
+        margin-top: 10px; /* Adds space above the button */
+    }
+
+    .genres-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+    }
+</style>

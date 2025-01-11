@@ -40,7 +40,7 @@ builder.Services.AddTransient<PayPalService>();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
-
+builder.Services.AddScoped<AutoReturnService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Add services to the container.
@@ -71,10 +71,17 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+RecurringJob.AddOrUpdate<AutoReturnService>(
+    service => service.CleanUpExpiredReservations(),
+    Cron.Minutely // Check every minute
+);
+
 RecurringJob.AddOrUpdate<AutoReturnService>(
     service => service.AutoReturnOverdueBooks(),
     Cron.Minutely // Check every minute
 );
+
 RecurringJob.AddOrUpdate<ReminderService>(
     reminderService => reminderService.SendReminderEmails(),
     Cron.Minutely); // Runs the job every minute

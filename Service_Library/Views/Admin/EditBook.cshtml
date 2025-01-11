@@ -5,8 +5,9 @@
 }
 
 <h2>Edit Book</h2>
-<form method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
+<form method="post" enctype="multipart/form-data" onsubmit="updateSelectedGenres(); return validateForm();">
     <input type="hidden" name="BookId" value="@Model.BookId" />
+    <input type="hidden" id="SelectedGenres" name="SelectedGenres" />
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="alert alert-danger">
@@ -33,16 +34,6 @@
     <div class="form-group">
         <label for="YearOfPublishing">Year of Publishing</label>
         <input type="number" class="form-control" id="YearOfPublishing" asp-for="YearOfPublishing" min="0" required />
-    </div>
-    <div class="form-group">
-        <label for="Format">File Format</label>
-        <select class="form-control" id="Format" asp-for="Format" required>
-            <option value="">-- Select Format --</option>
-            <option value="PDF">PDF</option>
-            <option value="EPUB">EPUB</option>
-            <option value="MOBI">MOBI</option>
-            <option value="FB2">FB2</option>
-        </select>
     </div>
     <div class="form-group">
         <label for="AgeLimit">Age Limit</label>
@@ -75,6 +66,37 @@
         </select>
     </div>
     <div class="form-group">
+        <button type="button" class="btn btn-primary mb-2 genre-button" onclick="toggleGenres()">Select Genres</button>
+        <div id="genreSelection" class="d-none">
+            <label>Genres</label>
+            <div class="genres-grid">
+                @foreach (var genre in ViewBag.Genres as List<string>)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="genre-@genre" name="genreCheckbox" value="@genre"
+                        @(ViewBag.SelectedGenres != null && ViewBag.SelectedGenres.Contains(genre) ? "checked" : "") />
+                        <label class="form-check-label" for="genre-@genre">@genre</label>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Display current genres -->
+    <div class="form-group">
+        <label>Current Genres:</label>
+        <ul>
+            @if (ViewBag.SelectedGenres != null)
+            {
+                @foreach (var genre in ViewBag.SelectedGenres as List<string>)
+                {
+                    <li>@genre</li>
+                }
+            }
+        </ul>
+    </div>
+
+    <div class="form-group">
         <label for="IsBorrowable">Is Borrowable?</label>
         <select class="form-control" id="IsBorrowable" asp-for="IsBorrowable" required>
             <option value="true">Yes</option>
@@ -87,7 +109,8 @@
     </div>
     <div class="form-group">
         <label for="BookContent">Book Content</label>
-        <input type="file" class="form-control-file" id="BookContent" name="BookContent" accept=".pdf,.epub,.mobi,.fb2" onchange="validateFileFormat()" />
+        <input type="file" class="form-control-file" id="BookContent" name="BookContent" accept=".pdf,.epub,.mobi,.fb2" onchange="setFileFormat()" />
+        <input type="hidden" id="Format" name="Format" asp-for="Format" />
         @if (Model.BookContent != null)
         {
             <p>Current File: @Model.Title.@Model.Format.ToLower()</p>
@@ -123,6 +146,21 @@
 
 <!-- JavaScript to Preview New Image and Validate File Format -->
 <script>
+        function updateSelectedGenres() {
+            const selectedGenres = Array.from(document.querySelectorAll('input[name="genreCheckbox"]:checked')).map(checkbox => checkbox.value);
+            document.getElementById('SelectedGenres').value = selectedGenres.join(',');
+        }
+
+
+    function setFileFormat() {
+        const fileInput = document.getElementById('BookContent');
+        const file = fileInput.files[0];
+        if (file) {
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            document.getElementById('Format').value = fileExtension;
+        }
+    }
+
     function previewImage(event) {
         const file = event.target.files[0];
         const reader = new FileReader();
@@ -175,7 +213,35 @@
             return false;
         }
 
+        updateSelectedGenres();
+
+        const selectedGenres = document.getElementById('SelectedGenres').value;
+        if (selectedGenres.length === 0) {
+            alert("Please select at least one genre.");
+            return false;
+        }
+
         return true;
     }
-</script>
 
+    function toggleGenres() {
+        const genreDiv = document.getElementById('genreSelection');
+        genreDiv.classList.toggle('d-none');
+    }
+</script>
+<style>
+    .genre-button {
+        margin-top: 10px; /* Adds space above the button */
+    }
+
+    .genres-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+    }
+</style>

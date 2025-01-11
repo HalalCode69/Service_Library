@@ -156,7 +156,7 @@ namespace Service_Library.Controllers
                         if (book.AvailableCopies > 0 || reservations.Any(r => r.UserId == userId))
                         {
                             var borrowDate = DateTime.Now;
-                            var returnDate = borrowDate.AddDays(30); // Replace with correct borrow duration logic.
+                            var returnDate = borrowDate.AddDays(30).AddMinutes(1); // Replace with correct borrow duration logic.
 
                             var transaction = new BorrowTransaction
                             {
@@ -187,10 +187,10 @@ namespace Service_Library.Controllers
                                 {
                                     string subject = "Book Borrowed by Another User";
                                     string body = $@"
-                            <p>Dear {user.FirstName},</p>
-                            <p>Unfortunately, the book <strong>{book.Title}</strong> has been borrowed by another user.</p>
-                            <p>We apologize for the inconvenience.</p>
-                            <p>Thank you!</p>";
+                                    <p>Dear {user.FirstName},</p>
+                                    <p>Unfortunately, the book <strong>{book.Title}</strong> has been borrowed by another user.</p>
+                                    <p>We apologize for the inconvenience.</p>
+                                    <p>Thank you!</p>";
 
                                     await _emailService.SendEmailAsync(user.Email, subject, body);
                                 }

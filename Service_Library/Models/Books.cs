@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Humanizer.Localisation;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Service_Library.Models
 {
@@ -65,6 +66,7 @@ namespace Service_Library.Models
         [NotMapped]
         public int? BorrowTransactionId { get; set; }
 
+        // New property for genres
+        public List<Genre> Genres { get; set; } = new List<Genre>();
     }
 }
-

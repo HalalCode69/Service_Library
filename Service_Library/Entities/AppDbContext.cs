@@ -18,11 +18,17 @@ namespace Service_Library.Entities
         public DbSet<UserRating> UserRatings { get; set; }
         public DbSet<BookReservation> BookReservations { get; set; } // Add this line
         public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
-
+        public DbSet<Genre> Genres { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
            base.OnModelCreating(modelBuilder);
+            // Configure the many-to-many relationship
+            modelBuilder.Entity<Book>()
+                .HasMany(b => b.Genres)
+                .WithMany(g => g.Books)
+                .UsingEntity(j => j.ToTable("BookGenres"));
+
         }
     }
 }
