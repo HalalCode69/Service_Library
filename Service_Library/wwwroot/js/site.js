@@ -3,7 +3,6 @@
     const countdownElements = document.querySelectorAll('.countdown-timer');
 
     countdownElements.forEach(timer => {
-        // Parse initial data from attributes
         let days = parseInt(timer.getAttribute('data-days'));
         let hours = parseInt(timer.getAttribute('data-hours'));
         let minutes = parseInt(timer.getAttribute('data-minutes'));
@@ -25,21 +24,17 @@
                 hours = 23;
                 days--;
             } else {
-                // Stop countdown if it reaches zero
                 clearInterval(interval);
                 timer.textContent = "Expired";
                 return;
             }
 
-            // Update the text content
             timer.textContent = `${days} days ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} left`;
         };
 
-        // Start countdown with a 1-second interval
         const interval = setInterval(updateTimer, 1000);
     });
 
-    // Ensure books are moved down if filter panel is already open
     const filterPanel = document.getElementById('filterPanel');
     const bookContainer = document.querySelector('.book-container');
 
@@ -47,7 +42,6 @@
         bookContainer.style.marginTop = `${filterPanel.offsetHeight + 20}px`;
     }
 
-    // Initialize price range slider
     var priceRangeSlider = document.getElementById('priceRangeSlider');
     var minPrice = parseFloat(document.getElementById('priceRangeMin').getAttribute('data-min-price'));
     var maxPrice = parseFloat(document.getElementById('priceRangeMax').getAttribute('data-max-price'));
@@ -81,80 +75,67 @@
 });
 
 function initializeEventListeners() {
-    // Borrow button event listeners
     document.querySelectorAll(".borrow-button").forEach(button => {
         button.removeEventListener("click", handleBorrow);
         button.addEventListener("click", handleBorrow);
     });
 
-    // Buy button event listeners
     document.querySelectorAll(".buy-button").forEach(button => {
         button.removeEventListener("click", handleBuy);
         button.addEventListener("click", handleBuy);
     });
 
-    // Delete button event listeners
     document.querySelectorAll(".delete-button").forEach(button => {
         button.removeEventListener("click", handleDelete);
         button.addEventListener("click", handleDelete);
     });
 
-    // Return button event listeners
     document.querySelectorAll(".return-button").forEach(button => {
         button.removeEventListener("click", handleReturn);
         button.addEventListener("click", handleReturn);
     });
 
-    // Join waiting list button event listeners
     document.querySelectorAll(".join-waiting-list-button").forEach(button => {
         button.removeEventListener("click", handleJoinWaitingList);
         button.addEventListener("click", handleJoinWaitingList);
     });
 
-    // Leave waiting list button event listeners
     document.querySelectorAll(".leave-waiting-list-button").forEach(button => {
         button.removeEventListener("click", handleLeaveWaitingList);
         button.addEventListener("click", handleLeaveWaitingList);
     });
 
 
-    // Release reservation button event listeners
     document.querySelectorAll(".release-reservation-button").forEach(button => {
         button.removeEventListener("click", handleReleaseReservation);
         button.addEventListener("click", handleReleaseReservation);
     });
 
-    // Add to Cart button event listeners
     document.querySelectorAll(".add-to-cart-button").forEach(button => {
         button.removeEventListener("click", handleAddToCart);
         button.addEventListener("click", handleAddToCart);
     });
 
-    // Add Borrow to Cart button event listeners
     document.querySelectorAll(".add-borrow-to-cart-button").forEach(button => {
         button.removeEventListener("click", handleAddBorrowToCart);
         button.addEventListener("click", handleAddBorrowToCart);
     });
 
-    // Remove from Cart button event listeners
     document.querySelectorAll(".remove-from-cart-button").forEach(button => {
         button.removeEventListener("click", handleRemoveFromCart);
         button.addEventListener("click", handleRemoveFromCart);
     });
 
-    // Clear Cart button event listeners
     document.querySelectorAll(".clear-cart-button").forEach(button => {
         button.removeEventListener("click", handleClearCart);
         button.addEventListener("click", handleClearCart);
     });
 
-    // Feedback submit button(s)
     document.querySelectorAll(".submit-feedback-button").forEach(button => {
         button.removeEventListener("click", handleFeedbackSubmit);
         button.addEventListener("click", handleFeedbackSubmit);
     });
 
-    // Star rating hovers/clicks
     document.querySelectorAll(".star-rating").forEach(ratingDiv => {
         const stars = ratingDiv.querySelectorAll(".star");
         stars.forEach(star => {
@@ -169,37 +150,32 @@ function initializeEventListeners() {
         ratingDiv.addEventListener("mouseout", resetStarHighlight);
     });
 
-    // Filter Panel Toggle
     const filterToggle = document.getElementById("filterToggle");
     if (filterToggle) {
         filterToggle.removeEventListener("click", toggleFilter);
         filterToggle.addEventListener("click", toggleFilter);
     }
 
-    // Apply Filters Button
     const applyFiltersButton = document.querySelector("#filterPanel .btn-success");
     if (applyFiltersButton) {
         applyFiltersButton.removeEventListener("click", applyFilters);
         applyFiltersButton.addEventListener("click", applyFilters);
     }
-    // Buy Now button event listeners
     document.querySelectorAll(".buy-now-button").forEach(button => {
         button.removeEventListener("click", handleBuyNow);
         button.addEventListener("click", handleBuyNow);
     });
 
-    // Borrow Now button event listeners
     document.querySelectorAll(".borrow-now-button").forEach(button => {
         button.removeEventListener("click", handleBorrowNow);
         button.addEventListener("click", handleBorrowNow);
     });
 }
-// Buy Now Handler
 function handleBuyNow(event) {
     event.preventDefault();
 
     if (!confirm("Are you sure you want to buy this book?")) {
-        return; // Exit the function if the user cancels
+        return;
     }
 
     const button = event.currentTarget;
@@ -223,7 +199,7 @@ function handleBuyNow(event) {
         })
         .then(data => {
             if (data.approvalUrl) {
-                window.location.href = data.approvalUrl; // Redirect to PayPal for payment
+                window.location.href = data.approvalUrl;
             } else {
                 alert('An error occurred: ' + data.message);
             }
@@ -234,12 +210,11 @@ function handleBuyNow(event) {
         });
 }
 
-// Borrow Now Handler
 function handleBorrowNow(event) {
     event.preventDefault();
 
     if (!confirm("Are you sure you want to borrow this book?")) {
-        return; // Exit the function if the user cancels
+        return;
     }
 
     const button = event.currentTarget;
@@ -263,7 +238,7 @@ function handleBorrowNow(event) {
         })
         .then(data => {
             if (data.approvalUrl) {
-                window.location.href = data.approvalUrl; // Redirect to PayPal for payment
+                window.location.href = data.approvalUrl;
             } else {
                 alert('An error occurred: ' + data.message);
             }
@@ -275,13 +250,12 @@ function handleBorrowNow(event) {
 }
 
 
-// Handle Add to Cart
 function handleAddToCart(event) {
     event.preventDefault();
     const button = event.currentTarget;
     const bookId = button.getAttribute("data-book-id");
-    const title = button.getAttribute("data-book-title"); // Ensure this attribute is set
-    const price = button.getAttribute("data-book-price"); // Ensure this attribute is set
+    const title = button.getAttribute("data-book-title");
+    const price = button.getAttribute("data-book-price");
 
     fetch(`/ShoppingCart/Add`, {
         method: "POST",
@@ -289,7 +263,7 @@ function handleAddToCart(event) {
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest"
         },
-        body: JSON.stringify({ BookId: parseInt(bookId), Title: title, Price: parseFloat(price), ItemType: 'Buy' }) // Set ItemType to 'Buy'
+        body: JSON.stringify({ BookId: parseInt(bookId), Title: title, Price: parseFloat(price), ItemType: 'Buy' })
     })
         .then(response => response.json())
         .then(data => {
@@ -305,13 +279,12 @@ function handleAddToCart(event) {
         });
 }
 
-// Handle Add Borrow to Cart
 function handleAddBorrowToCart(event) {
     event.preventDefault();
     const button = event.currentTarget;
     const bookId = button.getAttribute("data-book-id");
-    const title = button.getAttribute("data-book-title"); // Ensure this attribute is set
-    const price = button.getAttribute("data-book-price"); // Ensure this attribute is set
+    const title = button.getAttribute("data-book-title");
+    const price = button.getAttribute("data-borrow-price");
 
     fetch(`/ShoppingCart/GetBorrowCount`, {
         method: "GET",
@@ -332,7 +305,7 @@ function handleAddBorrowToCart(event) {
                         "Content-Type": "application/json",
                         "X-Requested-With": "XMLHttpRequest"
                     },
-                    body: JSON.stringify({ BookId: parseInt(bookId), Title: title, Price: parseFloat(price), ItemType: 'Borrow' }) // Set ItemType to 'Borrow'
+                    body: JSON.stringify({ BookId: parseInt(bookId), Title: title, Price: parseFloat(price), ItemType: 'Borrow' })
                 })
                     .then(response => response.json())
                     .then(data => {
@@ -355,8 +328,6 @@ function handleAddBorrowToCart(event) {
 }
 
 
-
-// Handle Remove from Cart
 function handleRemoveFromCart(event) {
     event.preventDefault();
     const button = event.currentTarget;
@@ -374,7 +345,7 @@ function handleRemoveFromCart(event) {
         .then(data => {
             if (data.success) {
                 alert(data.message);
-                location.reload(); // Reload the page to update the cart
+                location.reload();
             } else {
                 alert(data.message);
             }
@@ -384,8 +355,6 @@ function handleRemoveFromCart(event) {
             alert("An error occurred while removing from the cart.");
         });
 }
-
-// Handle Clear Cart
 function handleClearCart(event) {
     event.preventDefault();
 
@@ -409,8 +378,6 @@ function handleClearCart(event) {
             alert("An error occurred while clearing the cart.");
         });
 }
-
-// Toggle Filter Panel and Move Books Down
 function toggleFilter() {
     const filterPanel = document.getElementById('filterPanel');
     const bookContainer = document.querySelector('.book-container');
@@ -425,7 +392,6 @@ function toggleFilter() {
         filterPanel.style.display = 'block';
         bookContainer.style.marginTop = `${filterPanel.offsetHeight + 20}px`;
 
-        // Apply dark mode if enabled
         if (document.body.classList.contains('dark-mode')) {
             filterPanel.classList.add('dark-mode');
         }
@@ -434,8 +400,6 @@ function toggleFilter() {
         bookContainer.style.marginTop = '0';
     }
 }
-
-// Apply Filters Function
 function applyFilters() {
     const url = new URL(window.location.href);
     const category = document.getElementById('categoryDropdown').value;
@@ -474,51 +438,42 @@ function applyFilters() {
     window.location.href = url.toString();
 }
 
-
-
-// JavaScript function for sorting books
 function sortBooks(sortOption) {
     const url = new URL(window.location.href);
     if (sortOption) {
-        url.searchParams.set('sort', sortOption); // Update or add the `sort` query parameter
+        url.searchParams.set('sort', sortOption);
     } else {
-        url.searchParams.delete('sort'); // Remove the `sort` query parameter
+        url.searchParams.delete('sort');
     }
-    window.location.href = url.toString(); // Redirect to the updated URL
+    window.location.href = url.toString();
 }
 
-// JavaScript function for filtering by category
 function filterByCategory(category) {
     const url = new URL(window.location.href);
-    url.searchParams.set('categoryFilter', decodeURIComponent(category)); // Update or add the `categoryFilter` query parameter
-    url.searchParams.delete('search'); // Optional: Clear the search query when changing the category
-    window.location.href = url.toString(); // Redirect to the updated URL
+    url.searchParams.set('categoryFilter', decodeURIComponent(category));
+    url.searchParams.delete('search');
+    window.location.href = url.toString();
 }
 
-// JavaScript function for filtering by author
 function filterByAuthor(author) {
     const url = new URL(window.location.href);
-    url.searchParams.set('authorFilter', decodeURIComponent(author)); // Update or add the `authorFilter` query parameter
-    url.searchParams.delete('search'); // Optional: Clear the search query when changing the author
-    window.location.href = url.toString(); // Redirect to the updated URL
+    url.searchParams.set('authorFilter', decodeURIComponent(author));
+    url.searchParams.delete('search');
+    window.location.href = url.toString();
 }
 
-// JavaScript function for filtering by availability
 function filterByAvailability(availability) {
     const url = new URL(window.location.href);
-    url.searchParams.set('availability', decodeURIComponent(availability)); // Update or add the `availability` query parameter
-    url.searchParams.delete('search'); // Optional: Clear the search query when changing the availability
-    window.location.href = url.toString(); // Redirect to the updated URL
+    url.searchParams.set('availability', decodeURIComponent(availability));
+    url.searchParams.delete('search');
+    window.location.href = url.toString();
 }
-
 
 function handleDownload(event) {
     event.preventDefault();
 
     const button = event.currentTarget;
     const bookId = button.getAttribute("data-book-id");
-
-    // Assuming the download URL is `/Books/DownloadBook`
     const downloadUrl = `/Books/DownloadBook?bookId=${bookId}`;
 
     fetch(downloadUrl, {
@@ -546,7 +501,7 @@ function handleDownload(event) {
             const url = window.URL.createObjectURL(blob);
             const anchor = document.createElement("a");
             anchor.href = url;
-            anchor.download = filename; // Set the filename
+            anchor.download = filename;
             document.body.appendChild(anchor);
             anchor.click();
             document.body.removeChild(anchor);
@@ -557,10 +512,6 @@ function handleDownload(event) {
             alert("An error occurred while downloading the book.");
         });
 }
-
-
-
-// Delete Book Handler
 function handleDelete(event) {
     event.preventDefault();
 
@@ -574,7 +525,7 @@ function handleDelete(event) {
                 "Content-Type": "application/json",
                 "X-Requested-With": "XMLHttpRequest"
             },
-            body: JSON.stringify(bookId) // Send bookId as a raw integer
+            body: JSON.stringify(bookId)
         })
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -583,8 +534,6 @@ function handleDelete(event) {
             .then(data => {
                 if (data.success) {
                     alert(data.message);
-
-                    // Remove the book card from the UI
                     const bookCard = document.querySelector(`[data-book-id='${bookId}']`);
                     if (bookCard) {
                         bookCard.remove();
@@ -600,18 +549,13 @@ function handleDelete(event) {
     }
 }
 
-// Add Delete Book Handler to Initialization
 document.addEventListener("DOMContentLoaded", () => {
     initializeEventListeners();
-
-    // Delete button event listeners
     document.querySelectorAll(".delete-button").forEach(button => {
-        button.removeEventListener("click", handleDeleteBook); // Remove previous event listener
-        button.addEventListener("click", handleDeleteBook); // Add new event listener
+        button.removeEventListener("click", handleDeleteBook);
+        button.addEventListener("click", handleDeleteBook);
     });
 });
-
-// Return Book Handler
 function handleReturn(event) {
     event.preventDefault();
 
@@ -634,14 +578,12 @@ function handleReturn(event) {
         .then(data => {
             if (data.success) {
                 alert(data.message);
-
-                // Redirect based on the referrer
                 if (document.referrer.includes('/Books')) {
                     window.location.href = '/Books';
                 } else if (document.referrer.includes('/Books/Library')) {
                     window.location.href = '/Books/Library';
                 } else {
-                    window.location.href = '/'; // Default redirect
+                    window.location.href = '/';
                 }
             } else {
                 alert(data.message);
@@ -660,7 +602,7 @@ function confirmReturnBook(transactionId, bookId) {
                 "Content-Type": "application/json",
                 "X-Requested-With": "XMLHttpRequest"
             },
-            body: JSON.stringify({ transactionId }) // Send the correct transaction ID
+            body: JSON.stringify({ transactionId })
         })
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -669,7 +611,7 @@ function confirmReturnBook(transactionId, bookId) {
             .then(data => {
                 if (data.success) {
                     alert(data.message);
-                    location.reload(); // Reload the page to refresh the library
+                    location.reload();
                 } else {
                     alert(data.message);
                 }
@@ -680,14 +622,10 @@ function confirmReturnBook(transactionId, bookId) {
             });
     }
 }
-
-// Join Waiting List Handler
 function handleJoinWaitingList(event) {
     event.preventDefault();
     const button = event.currentTarget;
     const bookId = button.getAttribute("data-book-id");
-
-    console.log(`Joining waiting list for bookId: ${bookId}`);
 
     fetch(`/Books/JoinWaitingList`, {
         method: "POST",
@@ -700,36 +638,25 @@ function handleJoinWaitingList(event) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Update UI
                 const waitingListElement = document.querySelector(`#waiting-list-count-${bookId}`);
                 const userWaitingPositionElement = document.querySelector(`#user-waiting-position-${bookId}`);
-
-                console.log(`Waiting list element:`, waitingListElement);
-                console.log(`User waiting position element:`, userWaitingPositionElement);
-
-                // Update waiting list count
                 if (waitingListElement) {
                     waitingListElement.style.display = 'none';
                 }
-
-                // Show user position in waiting list
                 if (userWaitingPositionElement) {
                     userWaitingPositionElement.innerHTML = `You are in position: ${data.userPosition} in the waiting list.`;
                     userWaitingPositionElement.classList.replace("text-info", "text-warning");
                     userWaitingPositionElement.style.display = 'block';
                 } else {
-                    // If the element does not exist, create it
                     const newUserWaitingPositionElement = document.createElement('p');
                     newUserWaitingPositionElement.id = `user-waiting-position-${bookId}`;
                     newUserWaitingPositionElement.className = 'text-warning';
                     newUserWaitingPositionElement.innerHTML = `You are in position: ${data.userPosition} in the waiting list.`;
                     waitingListElement.insertAdjacentElement('afterend', newUserWaitingPositionElement);
                 }
-
-                // Update button to "Leave Waiting List"
                 button.innerText = "Leave Waiting List";
                 button.classList.replace("join-waiting-list-button", "leave-waiting-list-button");
-                initializeEventListeners(); // Reinitialize event listeners
+                initializeEventListeners();
             } else {
                 alert(data.message);
             }
@@ -740,13 +667,10 @@ function handleJoinWaitingList(event) {
         });
 }
 
-// Leave Waiting List Handler
 function handleLeaveWaitingList(event) {
     event.preventDefault();
     const button = event.currentTarget;
     const bookId = button.getAttribute("data-book-id");
-
-    console.log(`Leaving waiting list for bookId: ${bookId}`);
 
     fetch(`/Books/LeaveWaitingList`, {
         method: "POST",
@@ -759,29 +683,19 @@ function handleLeaveWaitingList(event) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Update UI
                 const waitingListElement = document.querySelector(`#waiting-list-count-${bookId}`);
                 const userWaitingPositionElement = document.querySelector(`#user-waiting-position-${bookId}`);
-
-                console.log(`Waiting list element:`, waitingListElement);
-                console.log(`User waiting position element:`, userWaitingPositionElement);
-
-                // Update waiting list count
                 if (waitingListElement) {
                     waitingListElement.innerHTML = `Users in Waitlist for borrow: ${data.waitingListCount} users`;
                     waitingListElement.classList.replace("text-warning", "text-info");
                     waitingListElement.style.display = 'block';
                 }
-
-                // Clear user position
                 if (userWaitingPositionElement) {
                     userWaitingPositionElement.style.display = 'none';
                 }
-
-                // Update button to "Join Waiting List"
                 button.innerText = "Join Waiting List";
                 button.classList.replace("leave-waiting-list-button", "join-waiting-list-button");
-                initializeEventListeners(); // Reinitialize event listeners
+                initializeEventListeners();
             } else {
                 alert(data.message);
             }
@@ -792,25 +706,12 @@ function handleLeaveWaitingList(event) {
         });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-// Handle Release Reservation
 function handleReleaseReservation(event) {
     event.preventDefault();
 
     const button = event.currentTarget;
     const bookId = button.getAttribute("data-book-id");
 
-    // Disable the button to prevent multiple clicks
     button.disabled = true;
 
     fetch(`/Books/LeaveWaitingList`, {
@@ -825,17 +726,15 @@ function handleReleaseReservation(event) {
         .then(data => {
             if (data.success) {
                 alert(data.message);
-
-                // Redirect based on the referrer
                 if (document.referrer.includes('/Books')) {
                     window.location.href = '/Books';
                 } else if (document.referrer.includes('/Books/Library')) {
                     window.location.href = '/Books/Library';
                 } else {
-                    window.location.href = '/'; // Default redirect
+                    window.location.href = '/';
                 }
             } else {
-                alert(data.message); // Show error message from the server
+                alert(data.message);
             }
         })
         .catch(error => {
@@ -843,15 +742,9 @@ function handleReleaseReservation(event) {
             alert("An error occurred while releasing the reservation.");
         })
         .finally(() => {
-            button.disabled = false; // Re-enable button
+            button.disabled = false;
         });
 }
-
-
-
-
-
-// Countdown Function
 function startCountdown(elementId, returnTimestamp) {
     const intervalId = setInterval(() => {
         const now = new Date();
@@ -868,18 +761,14 @@ function startCountdown(elementId, returnTimestamp) {
         const minutes = Math.floor((remainingTime % (1000 * 60)) / (1000 * 60));
 
         document.getElementById(elementId).textContent = `${days} days, ${hours} hours, ${minutes} mins left`;
-    }, 1000); // Update every second
+    }, 1000);
 }
-
-// --- NEW: Star Rating & Feedback Submission ---
 
 function handleStarMouseOver(event) {
     const currentStar = event.currentTarget;
     const ratingValue = parseInt(currentStar.getAttribute("data-value"));
     const starsContainer = currentStar.closest(".star-rating");
     const stars = starsContainer.querySelectorAll(".star");
-
-    // Highlight all stars up to the hovered one
     stars.forEach(star => {
         const starVal = parseInt(star.getAttribute("data-value"));
         if (starVal <= ratingValue) {
@@ -895,11 +784,7 @@ function handleStarClick(event) {
     const ratingValue = parseInt(currentStar.getAttribute("data-value"));
     const starsContainer = currentStar.closest(".star-rating");
     const stars = starsContainer.querySelectorAll(".star");
-
-    // Store the selected rating in a data attribute
     starsContainer.setAttribute("data-selected-rating", ratingValue);
-
-    // Update the visual appearance
     stars.forEach(star => {
         const starVal = parseInt(star.getAttribute("data-value"));
         if (starVal <= ratingValue) {
@@ -911,7 +796,6 @@ function handleStarClick(event) {
 }
 
 function resetStarHighlight(event) {
-    // Revert to the currently selected rating
     const starsContainer = event.currentTarget;
     const selectedRating = parseInt(starsContainer.getAttribute("data-selected-rating") || "0");
     const stars = starsContainer.querySelectorAll(".star");
@@ -933,7 +817,6 @@ function handleFeedbackSubmit(event) {
     const button = event.currentTarget;
     const bookId = button.getAttribute("data-book-id");
 
-    // Find the star rating container
     const ratingContainer = document.querySelector(`.star-rating[data-book-id="${bookId}"]`);
     if (!ratingContainer) {
         alert("Rating container not found.");
@@ -946,18 +829,15 @@ function handleFeedbackSubmit(event) {
         return;
     }
 
-    // Find the comment textarea
     const commentField = document.getElementById(`feedback-comment-${bookId}`);
     const commentText = commentField ? commentField.value.trim() : "";
 
-    // Build the request data
     const requestData = {
         bookId: parseInt(bookId),
         rating: ratingVal,
         comment: commentText
     };
 
-    // Send to server
     fetch("/Books/SubmitFeedback", {
         method: "POST",
         headers: {
@@ -970,10 +850,8 @@ function handleFeedbackSubmit(event) {
         .then(data => {
             if (data.success) {
                 alert(data.message);
-                // Example approach: re-fetch the updated feedback or just do an inline update
                 const feedbackContainer = document.querySelector(`#feedback-container-${bookId}`);
                 if (feedbackContainer) {
-                    // Check if the user has already posted feedback
                     const existingFeedback = feedbackContainer.querySelector('.existing-feedback[data-user-id="current-user"]');
                     const newFeedbackHtml = `
                         <div class="existing-feedback mb-2" data-user-id="current-user">
@@ -987,18 +865,15 @@ function handleFeedbackSubmit(event) {
                     `;
 
                     if (existingFeedback) {
-                        // Update existing feedback
                         existingFeedback.innerHTML = newFeedbackHtml;
                     } else {
-                        // Add new feedback
                         feedbackContainer.insertAdjacentHTML("beforeend", newFeedbackHtml);
                     }
 
-                    // Update the average rating dynamically
                     const averageRatingContainer = document.querySelector(`#average-rating-${bookId}`);
                     if (averageRatingContainer) {
-                        const newAverageRating = data.averageRating; // Assuming the server returns the new average rating
-                        const ratingCount = data.ratingCount; // Assuming the server returns the new rating count
+                        const newAverageRating = data.averageRating;
+                        const ratingCount = data.ratingCount;
                         averageRatingContainer.innerHTML = `
                             <strong>Average Rating:</strong>
                             ${Array.from({ length: 5 }, (_, i) => `<span style="color:${i < Math.round(newAverageRating) ? "gold" : "gray"};">&#9733;</span>`).join('')}

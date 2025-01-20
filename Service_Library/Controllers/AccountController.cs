@@ -43,7 +43,6 @@ namespace Service_Library.Controllers
                     _context.SaveChanges();
 
                     ModelState.Clear();
-                    // Redirect to login page with a message and email
                     return RedirectToAction("Login", "Account", new { message = "Registration successful. Please log in.", email = model.Email });
                 }
                 catch (DbUpdateException)
@@ -84,15 +83,14 @@ namespace Service_Library.Controllers
 
                 if (user != null)
                 {
-                    // Add claims, including the NameIdentifier for the User ID
                     var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // User ID as NameIdentifier
-                new Claim(ClaimTypes.Name, user.Email),                   // Email as Name
-                new Claim("FirstName", user.FirstName),                   // User's First Name
-                new Claim("LastName", user.LastName),                     // User's Last Name
-                new Claim(ClaimTypes.Role, user.Role ?? "User")           // Role with fallback
-            };
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                        new Claim(ClaimTypes.Name, user.Email),
+                        new Claim("FirstName", user.FirstName),
+                        new Claim("LastName", user.LastName),
+                        new Claim(ClaimTypes.Role, user.Role ?? "User")
+                    };
 
                     var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -110,8 +108,6 @@ namespace Service_Library.Controllers
             }
             return View(model);
         }
-
-
 
         public IActionResult Logout()
         {

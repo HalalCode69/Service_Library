@@ -23,7 +23,6 @@ public class ReservationCleanupService : BackgroundService
                 autoReturnService.CleanUpExpiredReservations();
             }
 
-            // Run the cleanup every second for testing purposes
             await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
         }
     }

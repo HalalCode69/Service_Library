@@ -82,7 +82,6 @@ namespace Service_Library.Services
                 var error = SystemTextJson.Deserialize<PayPalError>(ex.Message);
                 if (error?.Name == "UNPROCESSABLE_ENTITY" && error.Details.Any(d => d.Issue == "ORDER_ALREADY_CAPTURED"))
                 {
-                    // Log the error and return true as the order is already captured
                     _logger.LogWarning("Order already captured: {OrderId}", orderId);
                     return true;
                 }

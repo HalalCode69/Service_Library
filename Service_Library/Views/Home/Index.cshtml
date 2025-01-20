@@ -180,7 +180,6 @@
     <div class="comments-section container">
         <h2>What users think about our service</h2>
         <div id="commentsContainer">
-            <!-- Existing comments will be loaded here -->
         </div>
     </div>
 
@@ -231,7 +230,7 @@
                     document.querySelectorAll('.star-rating .star').forEach(star => {
                         star.classList.remove('selected');
                     });
-                    loadComments(); // Reload comments after submission
+                    loadComments();
                 } else {
                     alert(data.message);
                 }

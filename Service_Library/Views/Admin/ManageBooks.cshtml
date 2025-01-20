@@ -21,7 +21,6 @@
         @foreach (var book in Model)
         {
             <tr>
-                <!-- Cover Image -->
                 <td>
                     @if (book.CoverImage != null)
                     {
@@ -33,12 +32,10 @@
                         <p>No Image</p>
                     }
                 </td>
-                <!-- Book Details -->
                 <td>@book.Title</td>
                 <td>@book.Author</td>
                 <td>@book.Category</td>
                 <td>@book.AvailableCopies</td>
-                <!-- Action Buttons -->
                 <td>
                     <a href="@Url.Action("EditBook", "Admin", new { id = book.BookId })" class="btn btn-sm btn-warning">Edit</a>
                     <a href="@Url.Action("DeleteBook", "Admin", new { id = book.BookId })" class="btn btn-sm btn-danger"

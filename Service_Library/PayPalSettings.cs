@@ -4,6 +4,6 @@ namespace Service_Library.Services
     {
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
-        public string Environment { get; set; } // "sandbox" or "live"
+        public string Environment { get; set; }
     }
 }

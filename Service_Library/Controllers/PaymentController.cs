@@ -16,9 +16,8 @@ namespace Service_Library.Controllers
     {
         private readonly PayPalService _payPalService;
         private readonly AppDbContext _context;
-        private readonly ILogger<PaymentController> _logger; 
         private readonly EmailService _emailService;
-
+        private readonly ILogger<PaymentController> _logger; 
 
         public PaymentController(PayPalService payPalService, AppDbContext context, ILogger<PaymentController> logger, EmailService emailService)
         {
@@ -44,7 +43,6 @@ namespace Service_Library.Controllers
                 return NotFound();
             }
 
-            // Check if the user has already borrowed 3 books
             if (request.ItemType == "Borrow")
             {
                 var borrowedCount = _context.BorrowTransactions
@@ -56,20 +54,25 @@ namespace Service_Library.Controllers
                 }
             }
 
-            // Determine the price to use
-            decimal priceToUse = book.BuyPrice;
-            if (book.DiscountPrice.HasValue && book.DiscountEndDate.HasValue && book.DiscountEndDate.Value >= DateTime.Now)
+            decimal priceToUse;
+            if (request.ItemType == "Borrow")
             {
-                priceToUse = book.DiscountPrice.Value;
+                priceToUse = book.BorrowPrice;
+            }
+            else
+            {
+                priceToUse = book.BuyPrice;
+                if (book.DiscountPrice.HasValue && book.DiscountEndDate.HasValue && book.DiscountEndDate.Value >= DateTime.Now)
+                {
+                    priceToUse = book.DiscountPrice.Value;
+                }
             }
 
-            // Create a PayPal order for buying
             var returnUrl = Url.Action("CompleteBuyOrBorrow", "Payment", new { bookId = request.BookId, itemType = request.ItemType }, Request.Scheme);
             var approvalUrl = await _payPalService.CreateOrder(priceToUse, "USD", returnUrl);
 
             return Ok(new { approvalUrl });
         }
-
 
 
         [HttpGet("CompleteBuyOrBorrow")]
@@ -93,30 +96,32 @@ namespace Service_Library.Controllers
                 {
                     if (itemType == "Buy")
                     {
-                        // Check if the user has already borrowed this book
                         var borrowTransaction = _context.BorrowTransactions
                             .FirstOrDefault(bt => bt.BookId == bookId && bt.UserId == userId && !bt.IsReturned);
 
                         if (borrowTransaction != null)
                         {
-                            // Mark the borrow transaction as returned
                             borrowTransaction.IsReturned = true;
                         }
 
-                        // Add a new buy transaction
                         var transaction = new Transaction
                         {
                             UserId = userId,
                             BookId = bookId,
                             TransactionType = "Buy",
-                            TransactionDate = DateTime.UtcNow,
+                            TransactionDate = DateTime.Now,
                             Status = "Completed"
                         };
                         _context.Transactions.Add(transaction);
+
+                        var waitingEntry = _context.WaitingList.FirstOrDefault(w => w.BookId == bookId && w.UserId == userId);
+                        if (waitingEntry != null)
+                        {
+                            _context.WaitingList.Remove(waitingEntry);
+                        }
                     }
                     else if (itemType == "Borrow")
                     {
-                        // Check the number of active borrow transactions for this book
                         var activeBorrowCount = _context.BorrowTransactions
                             .Count(bt => bt.BookId == bookId && !bt.IsReturned);
 
@@ -125,7 +130,6 @@ namespace Service_Library.Controllers
                             return BadRequest("This book has reached its borrow limit. Please join the waiting list.");
                         }
 
-                        // Check if the book is reserved for another user
                         var reservations = _context.BookReservations
                             .Where(br => br.BookId == book.BookId && br.ReservationExpiry > DateTime.Now)
                             .ToList();
@@ -135,7 +139,6 @@ namespace Service_Library.Controllers
                             return BadRequest("This book is reserved for another user.");
                         }
 
-                        // Check if the user has already borrowed 3 books
                         var borrowedCount = _context.BorrowTransactions
                             .Count(bt => bt.UserId == userId && !bt.IsReturned);
 
@@ -152,11 +155,10 @@ namespace Service_Library.Controllers
                             return BadRequest("You have already borrowed this book.");
                         }
 
-                        // Allow borrowing if the book is reserved for the current user or if there are available copies
                         if (book.AvailableCopies > 0 || reservations.Any(r => r.UserId == userId))
                         {
                             var borrowDate = DateTime.Now;
-                            var returnDate = borrowDate.AddDays(30).AddMinutes(1); // Replace with correct borrow duration logic.
+                            var returnDate = borrowDate.AddDays(30).AddMinutes(1);
 
                             var transaction = new BorrowTransaction
                             {
@@ -167,10 +169,8 @@ namespace Service_Library.Controllers
                                 IsReturned = false
                             };
 
-                            // Remove all reservations for this book
                             _context.BookReservations.RemoveRange(reservations);
 
-                            // Decrease available copies if not reserved for the current user
                             if (!reservations.Any(r => r.UserId == userId))
                             {
                                 book.AvailableCopies--;
@@ -179,7 +179,6 @@ namespace Service_Library.Controllers
                             _context.BorrowTransactions.Add(transaction);
                             await _context.SaveChangesAsync();
 
-                            // Notify the remaining users in the reservations
                             foreach (var reservation in reservations.Where(r => r.UserId != userId))
                             {
                                 var user = _context.UserAccounts.FirstOrDefault(u => u.Id == reservation.UserId);
@@ -187,16 +186,15 @@ namespace Service_Library.Controllers
                                 {
                                     string subject = "Book Borrowed by Another User";
                                     string body = $@"
-                                    <p>Dear {user.FirstName},</p>
-                                    <p>Unfortunately, the book <strong>{book.Title}</strong> has been borrowed by another user.</p>
-                                    <p>We apologize for the inconvenience.</p>
-                                    <p>Thank you!</p>";
+                                        <p>Dear {user.FirstName},</p>
+                                        <p>Unfortunately, the book <strong>{book.Title}</strong> has been borrowed by another user.</p>
+                                        <p>We apologize for the inconvenience.</p>
+                                        <p>Thank you!</p>";
 
                                     await _emailService.SendEmailAsync(user.Email, subject, body);
                                 }
                             }
 
-                            // Remove the user from the waiting list
                             var waitingEntry = _context.WaitingList.FirstOrDefault(w => w.BookId == book.BookId && w.UserId == userId);
                             if (waitingEntry != null)
                             {
@@ -208,15 +206,14 @@ namespace Service_Library.Controllers
 
                     await _context.SaveChangesAsync();
 
-                    // Send email notification to the user
                     var userAccount = await _context.UserAccounts.FindAsync(userId);
                     if (userAccount != null)
                     {
                         emailSubject = "Payment Successful";
                         emailBody = $@"
-                <p>Dear {userAccount.FirstName},</p>
-                <p>Your payment for the book <strong>{book.Title}</strong> was successful.</p>
-                <p>Thank you for your purchase!</p>";
+                            <p>Dear {userAccount.FirstName},</p>
+                            <p>Your payment for the book <strong>{book.Title}</strong> was successful.</p>
+                            <p>Thank you for your purchase!</p>";
                         await _emailService.SendEmailAsync(userAccount.Email, emailSubject, emailBody);
                     }
                 }
@@ -226,7 +223,6 @@ namespace Service_Library.Controllers
             {
                 message = "Payment failed. Please try again.";
 
-                // Send email notification to the user
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (userIdString != null && int.TryParse(userIdString, out int userId))
                 {
@@ -244,6 +240,7 @@ namespace Service_Library.Controllers
             }
             return RedirectToAction("Index", "Books", new { message });
         }
+
         [HttpPost("CreateOrder")]
         public async Task<IActionResult> CreateOrder([FromForm] decimal amount, [FromForm] string currency = "USD")
         {
@@ -278,18 +275,16 @@ namespace Service_Library.Controllers
                 var book = await _context.Books.FindAsync(item.BookId);
                 if (item.ItemType == "Borrow" && cartItems.Any(i => i.BookId == item.BookId && i.ItemType == "Buy"))
                 {
-                    // Remove borrow item if the same book is in the cart as buy
                     _context.ShoppingCartItems.Remove(item);
                 }
                 else
                 {
-                    // Determine the price to use
-                    decimal priceToUse = book.BuyPrice;
-                    if (book.DiscountPrice.HasValue && book.DiscountEndDate.HasValue && book.DiscountEndDate.Value >= DateTime.Now)
+                    decimal priceToUse = item.ItemType == "Borrow" ? book.BorrowPrice : book.BuyPrice;
+                    if (item.ItemType == "Buy" && book.DiscountPrice.HasValue && book.DiscountEndDate.HasValue && book.DiscountEndDate.Value >= DateTime.Now)
                     {
                         priceToUse = book.DiscountPrice.Value;
                     }
-                    totalAmount += priceToUse;
+                    totalAmount += priceToUse * item.Quantity;
                 }
             }
 
@@ -299,11 +294,6 @@ namespace Service_Library.Controllers
             var approvalUrl = await _payPalService.CreateOrder(totalAmount, currency, returnUrl);
             return Redirect(approvalUrl);
         }
-
-
-
-
-
 
         [HttpGet]
         public async Task<IActionResult> CompleteOrder(string token, string PayerID)
@@ -328,34 +318,36 @@ namespace Service_Library.Controllers
                         var book = await _context.Books.FindAsync(item.BookId);
                         if (item.ItemType == "Buy")
                         {
-                            // Check if the user has already borrowed this book
                             var borrowTransaction = _context.BorrowTransactions
                                 .FirstOrDefault(bt => bt.BookId == item.BookId && bt.UserId == userId && !bt.IsReturned);
 
                             if (borrowTransaction != null)
                             {
-                                // Mark the borrow transaction as returned
                                 borrowTransaction.IsReturned = true;
                             }
 
-                            // Add a new buy transaction
                             var transaction = new Transaction
                             {
                                 UserId = userId,
                                 BookId = item.BookId,
                                 TransactionType = "Buy",
-                                TransactionDate = DateTime.UtcNow,
+                                TransactionDate = DateTime.Now,
                                 Status = "Completed"
                             };
                             _context.Transactions.Add(transaction);
+
+                            var waitingEntry = _context.WaitingList.FirstOrDefault(w => w.BookId == item.BookId && w.UserId == userId);
+                            if (waitingEntry != null)
+                            {
+                                _context.WaitingList.Remove(waitingEntry);
+                            }
 
                             emailDetails.Add($"Bought: {book.Title} for {book.BuyPrice.ToString("C", new System.Globalization.CultureInfo("en-US"))}");
                         }
                         else if (item.ItemType == "Borrow")
                         {
-                            // Add a new borrow transaction
-                            var borrowDate = DateTime.UtcNow;
-                            var returnDate = borrowDate.AddDays(30); // Assuming a 30-day borrow period
+                            var borrowDate = DateTime.Now;
+                            var returnDate = borrowDate.AddDays(30).AddMinutes(1);
 
                             var borrowTransaction = new BorrowTransaction
                             {
@@ -374,18 +366,17 @@ namespace Service_Library.Controllers
                     _context.ShoppingCartItems.RemoveRange(items);
                     await _context.SaveChangesAsync();
 
-                    // Send email notification to the user
                     var userAccount = await _context.UserAccounts.FindAsync(userId);
                     if (userAccount != null)
                     {
                         emailSubject = "Payment Successful";
                         emailBody = $@"
-                            <p>Dear {userAccount.FirstName},</p>
-                            <p>Your payment for the items in your cart was successful. Here are the details:</p>
-                            <ul>
-                                {string.Join("", emailDetails.Select(detail => $"<li>{detail}</li>"))}
-                            </ul>
-                            <p>Thank you for your purchase!</p>";
+                    <p>Dear {userAccount.FirstName},</p>
+                    <p>Your payment for the items in your cart was successful. Here are the details:</p>
+                    <ul>
+                        {string.Join("", emailDetails.Select(detail => $"<li>{detail}</li>"))}
+                    </ul>
+                    <p>Thank you for your purchase!</p>";
                         await _emailService.SendEmailAsync(userAccount.Email, emailSubject, emailBody);
                     }
 
@@ -395,21 +386,21 @@ namespace Service_Library.Controllers
                 {
                     message = "Payment failed. Please try again.";
 
-                    // Send email notification to the user
                     var userAccount = await _context.UserAccounts.FindAsync(userId);
                     if (userAccount != null)
                     {
                         emailSubject = "Payment Failed";
                         emailBody = $@"
-                        <p>Dear {userAccount.FirstName},</p>
-                        <p>Your payment for the items in your cart has failed.</p>
-                        <p>Please try again.</p>";
+                            <p>Dear {userAccount.FirstName},</p>
+                            <p>Your payment for the items in your cart has failed.</p>
+                            <p>Please try again.</p>";
                         await _emailService.SendEmailAsync(userAccount.Email, emailSubject, emailBody);
                     }
                 }
             }
             return RedirectToAction("Index", "Books", new { message });
         }
+
         public class BuyOrBorrowRequest
         {
             public int BookId { get; set; }

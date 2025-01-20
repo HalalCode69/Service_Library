@@ -27,7 +27,7 @@ namespace Service_Library.Services
                 From = new MailAddress(_smtpSettings.UserName),
                 Subject = subject,
                 Body = body,
-                IsBodyHtml = true // Set to true if the body contains HTML
+                IsBodyHtml = true
             };
             mailMessage.To.Add(toEmail);
 

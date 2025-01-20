@@ -1,10 +1,9 @@
-/* Container for all books */
 .book-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px; /* Space between cards */
-    justify-content: flex-start; /* Align cards to the left */
-    margin-top: 20px; /* Adds space from the top */
+    gap: 20px;
+    justify-content: flex-start;
+    margin-top: 20px;
 }
 .alert-info-short {
     max-width: 1180px;
@@ -30,15 +29,13 @@
     text-shadow: 0 0 5px var(--navbar-link-hover-color);
 }
 
-/* Navbar Customization */
 .navbar-custom {
-    background: rgba(255, 255, 255, 0.25); /* White with 20% opacity */
-    backdrop-filter: blur(8px); /* Adds a soft blur effect */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Optional: subtle bottom border */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: soft shadow */
-    transition: background 0.3s ease; /* Smooth transition */
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease;
 }
-/* Star container styles */
 .star-rating {
     display: inline-block;
     cursor: pointer;
@@ -53,16 +50,16 @@
 
 .star-rating .star.hovered,
 .star-rating .star.selected {
-    color: gold; /* or any color you prefer for hovered/selected */
+    color: gold;
 }
 
 .navbar-custom .nav-link {
-    color: #333; /* Adjust link text color for readability */
+    color: #333;
     font-weight: bold;
 }
 
 .navbar-custom .nav-link:hover {
-    color: #000; /* Darker text color on hover */
+    color: #000;
 }
 
 .search-container {
@@ -78,7 +75,7 @@
 }
 
 .navbar .form-control {
-    width: 260px; /* Adjust as needed */
+    width: 260px;
     background-color: rgba(255, 255, 255, 0.8);
 }
 
@@ -98,10 +95,10 @@
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    z-index: 2; /* Ensure overlay is above other content */
+    z-index: 2;
     pointer-events: none;
-    background-image: var(--background-image, none); /* Dynamically set via JavaScript */
-    transition: background-image 0.3s ease-in-out; /* Smooth transition */
+    background-image: var(--background-image, none);
+    transition: background-image 0.3s ease-in-out;
 }
 
 .age-limit-badge {
@@ -125,9 +122,9 @@
 
 .book-image-container {
     position: relative;
-    border-radius: 10px; /* Ensure the container has rounded corners */
-    width: 180px; /* Thinner card */
-    height: 240px; /* Adjust height */
+    border-radius: 10px;
+    width: 180px;
+    height: 240px;
 }
 
 
@@ -140,16 +137,15 @@
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    pointer-events: none; /* Prevent the overlay from blocking user interactions */
-    z-index: 2; /* Ensure it appears on top of the image */
-    border-radius: inherit; /* Inherit the parent's border-radius */
+    pointer-events: none;
+    z-index: 2;
+    border-radius: inherit;
 }
 
-/* Book Card */
 .book-card {
     position: relative;
-    width: 180px; /* Thinner card */
-    height: 280px; /* Adjust height */
+    width: 180px;
+    height: 280px;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
@@ -163,7 +159,6 @@
     transform: scale(1.06);
 }
 
-/* Book Cover Image */
 .book-cover {
     width: 100%;
     height: 180px;
@@ -171,15 +166,14 @@
     border-bottom: 2px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Book Info Section */
 .book-info {
     padding: 6px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.3); /* White with 20% opacity */
+    background: rgba(255, 255, 255, 0.3);
 }
 
 body.dark-mode .book-info {
-    background: none; /* Remove background color in dark mode */
+    background: none;
 }
 
 .book-title {
@@ -188,7 +182,7 @@ body.dark-mode .book-info {
     margin: 5px 0;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Prevent title from overflowing */
+    text-overflow: ellipsis;
 }
 
 .book-author {
@@ -205,22 +199,21 @@ body.dark-mode .book-info {
     margin-top: 5px;
 }
 
-/* Discounted Price */
 .discount-price {
     font-size: 1rem;
-    color: #ff4d4d; /* Red for discount */
+    color: #ff4d4d;
     font-weight: bold;
 }
 
 .wide-dropdown {
     max-height: 200px;
     overflow-y: auto;
-    width: auto; /* Adjust to content width */
-    z-index: 1050; /* Ensure it appears above other elements */
+    width: auto;
+    z-index: 1050;
 }
 
 .wide-dropdown .dropdown-item {
-    white-space: nowrap; /* Prevent text wrapping */
+    white-space: nowrap;
 }
 
 .strike-price {
@@ -236,20 +229,20 @@ body.dark-mode .book-info {
 
 .modal-body {
     display: flex;
-    align-items: flex-start; /* Align items to the top */
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 20px; /* Add some space between image and text */
+    gap: 20px;
 }
 
 .button-container {
     display: flex;
-    justify-content: flex-start; /* Align buttons to the left */
-    gap: 10px; /* Add spacing between buttons */
-    flex-wrap: wrap; /* Ensure buttons wrap on smaller screens */
+    justify-content: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .book-details p {
-    margin-bottom: 0.5rem; /* Reduce margin for cleaner spacing */
+    margin-bottom: 0.5rem;
 }
 
 
@@ -257,14 +250,14 @@ body.dark-mode .book-info {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    gap: 15px; /* Spacing between text and image */
+    gap: 15px;
 }
 
 .book-details {
-    flex: 1; /* Allow text section to take available space */
+    flex: 1;
     display: flex;
-    flex-direction: column; /* Stack text and buttons vertically */
-    justify-content: space-between; /* Space text and buttons evenly */
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .modal-body img {
@@ -283,13 +276,12 @@ body.dark-mode .book-info {
 }
 
 .modal-dialog {
-    max-width: 550px; /* Adjust modal width */
+    max-width: 550px;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .book-card {
-        width: 150px; /* Adjust for smaller screens */
+        width: 150px;
         height: 240px;
     }
 
@@ -318,7 +310,7 @@ body.dark-mode .book-info {
 
 @media (max-width: 480px) {
     .book-card {
-        width: 100%; /* Full width on very small screens */
+        width: 100%;
         max-width: none;
     }
 
@@ -335,16 +327,15 @@ body.dark-mode .book-info {
     transition: margin-top 0.3s ease;
 }
 
-/* Custom styles for the price range slider */
 #priceRangeSlider {
-    margin-top: 40px; /* Add space above the slider */
-    margin-inline: 50px; /* Add space above the slider */
-    width: 90%; /* Adjust the width as needed */
-    height: 20px; /* Adjust the height as needed */
+    margin-top: 40px;
+    margin-inline: 50px;
+    width: 90%;
+    height: 20px;
 }
 
 .noUi-handle {
-    width: 20px; /* Adjust the handle width as needed */
-    height: 20px; /* Adjust the handle height as needed */
-    top: -6px; /* Adjust the handle position as needed */
+    width: 20px;
+    height: 20px;
+    top: -6px;
 }

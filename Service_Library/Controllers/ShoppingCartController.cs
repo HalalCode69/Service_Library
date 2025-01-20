@@ -19,14 +19,14 @@ namespace Service_Library.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userIdString == null || !int.TryParse(userIdString, out int userId))
             {
                 return Unauthorized();
             }
 
             var cartItems = await _context.ShoppingCartItems
-                .Include(item => item.Book) // Eagerly load the Book navigation property
+                .Include(item => item.Book)
                 .Where(item => item.UserId == userId)
                 .ToListAsync();
             var items = await _context.ShoppingCartItems
@@ -50,13 +50,12 @@ namespace Service_Library.Controllers
                     return Json(new { success = false, message = "ItemType is required." });
                 }
 
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (userIdString == null || !int.TryParse(userIdString, out int userId))
                 {
                     return Unauthorized();
                 }
 
-                // Check if the user has already borrowed 3 books
                 if (cartItemDto.ItemType == "Borrow")
                 {
                     var borrowedCount = _context.BorrowTransactions
@@ -74,6 +73,12 @@ namespace Service_Library.Controllers
                     return NotFound();
                 }
 
+                decimal priceToUse = cartItemDto.ItemType == "Borrow" ? book.BorrowPrice : book.BuyPrice;
+                if (cartItemDto.ItemType == "Buy" && book.DiscountPrice.HasValue && book.DiscountEndDate.HasValue && book.DiscountEndDate.Value >= DateTime.Now)
+                {
+                    priceToUse = book.DiscountPrice.Value;
+                }
+
                 var item = _context.ShoppingCartItems
                     .FirstOrDefault(i => i.UserId == userId && i.BookId == cartItemDto.BookId && i.ItemType == cartItemDto.ItemType);
 
@@ -84,8 +89,8 @@ namespace Service_Library.Controllers
                         UserId = userId,
                         BookId = cartItemDto.BookId,
                         Title = cartItemDto.Title,
-                        Price = cartItemDto.Price, // Use the provided price
-                        ItemType = cartItemDto.ItemType, // Set the item type
+                        Price = priceToUse,
+                        ItemType = cartItemDto.ItemType,
                         Quantity = 1
                     };
                     _context.ShoppingCartItems.Add(item);
@@ -112,12 +117,16 @@ namespace Service_Library.Controllers
 
 
 
+
+
+
+
         [HttpPost]
         public IActionResult Remove([FromBody] CartItemDto cartItemDto)
         {
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (userIdString == null || !int.TryParse(userIdString, out int userId))
                 {
                     return Unauthorized();
@@ -147,7 +156,7 @@ namespace Service_Library.Controllers
         {
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (userIdString == null || !int.TryParse(userIdString, out int userId))
                 {
                     return Unauthorized();
@@ -173,7 +182,7 @@ namespace Service_Library.Controllers
         [HttpGet]
         public IActionResult GetBorrowCount()
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // Retrieve the actual user ID
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); 
             if (userIdString == null || !int.TryParse(userIdString, out int userId))
             {
                 return Unauthorized();
@@ -196,7 +205,7 @@ namespace Service_Library.Controllers
         public int BookId { get; set; }
         public string Title { get; set; }
         public decimal Price { get; set; }
-        public string ItemType { get; set; } // New property to distinguish between borrow and buy
+        public string ItemType { get; set; }
     }
 
 

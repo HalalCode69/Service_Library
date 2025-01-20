@@ -9,13 +9,9 @@
     </div>
 }
 
-
-
-<!-- Filter Button -->
 <div class="position-relative mb-3">
     <button class="btn btn-primary" id="filterToggle">Filter</button>
     <div id="filterPanel" class="p-3 bg-light border rounded position-absolute top-100 w-100 shadow">
-        <!-- Categories Dropdown -->
         <div class="mb-3">
             <label for="categoryDropdown" class="form-label">Category</label>
             <select id="categoryDropdown" class="form-select">
@@ -27,7 +23,6 @@
                 }
             </select>
         </div>
-        <!-- Genres Dropdown -->
         <div class="mb-3">
             <label for="genreDropdown" class="form-label">Genres</label>
             <select id="genreDropdown" class="form-select" multiple>
@@ -40,7 +35,6 @@
             </select>
         </div>
 
-        <!-- Authors Dropdown -->
         <div class="mb-3">
             <label for="authorDropdown" class="form-label">Author</label>
             <select id="authorDropdown" class="form-select">
@@ -53,7 +47,6 @@
             </select>
         </div>
 
-        <!-- Sort By Dropdown -->
         <div class="mb3">
             <label for="sortDropdown" class="form-label">Sort By</label>
             <select id="sortDropdown" class="form-select">
@@ -73,7 +66,6 @@
             </select>
         </div>
 
-        <!-- Buying/Borrowing Dropdown -->
         <div class="mb-3">
             <label for="buyBorrowDropdown" class="form-label">Availability</label>
             <select id="buyBorrowDropdown" class="form-select">
@@ -83,7 +75,6 @@
             </select>
         </div>
 
-        <!-- Price Range -->
         <div class="mb-3">
             <label for="priceRange" class="form-label">Price Range</label>
             <div id="priceRangeSlider"></div>
@@ -95,13 +86,11 @@
             </div>
         </div>
 
-        <!-- Discounted Books Checkbox -->
         <div class="mb-3 form-check">
             <input type="checkbox" class="form-check-input" id="onSaleCheckbox" @(ViewContext.HttpContext.Request.Query["onSale"] == "true" ? "checked" : "")>
             <label class="form-check-label" for="onSaleCheckbox">Show Only Discounted Books</label>
         </div>
 
-        <!-- Apply Filter Button -->
         <div class="text-end">
             <button class="btn btn-success" onclick="applyFilters()">Apply</button>
         </div>
@@ -114,27 +103,25 @@
 
 
 <script>
-    // JavaScript function for sorting books
     function sortBooks(sortOption) {
         const url = new URL(window.location.href);
         if (sortOption) {
-            url.searchParams.set('sort', sortOption); // Update or add the `sort` query parameter
+            url.searchParams.set('sort', sortOption);
         } else {
-            url.searchParams.delete('sort'); // Remove the `sort` query parameter
+            url.searchParams.delete('sort');
         }
-        window.location.href = url.toString(); // Redirect to the updated URL
+        window.location.href = url.toString();
     }
 </script>
 
 
 
 <script>
-    // JavaScript function for filtering by category
     function filterByCategory(category) {
     const url = new URL(window.location.href);
-    url.searchParams.set('categoryFilter', decodeURIComponent(category)); // Update or add the `categoryFilter` query parameter
-    url.searchParams.delete('search'); // Optional: Clear the search query when changing the category
-    window.location.href = url.toString(); // Redirect to the updated URL
+    url.searchParams.set('categoryFilter', decodeURIComponent(category));
+    url.searchParams.delete('search');
+    window.location.href = url.toString();
     }
 </script>
 <div class="book-container">
@@ -142,12 +129,11 @@
     @foreach (var book in Model)
     {
         <script>
-            // Function to attach hover effects to all book cards
             function attachHoverEffects() {
             const cards = document.querySelectorAll('.book-card');
 
             cards.forEach((card) => {
-            const category = card.getAttribute('data-category'); // Get category
+            const category = card.getAttribute('data-category');
             const categoryEffects = {
             "Graphic Novels": {
             intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/ki-detonate/intro.png",
@@ -225,39 +211,27 @@
 
             const effects = categoryEffects[category] || categoryEffects["Default"];
             let introTimeout;
-
-            // Remove any existing event listeners to avoid duplication
             card.onmouseenter = null;
             card.onmouseleave = null;
-
-            // Add hover event listeners
             card.addEventListener('mouseenter', () => {
-            clearTimeout(introTimeout); // Clear previous timeout
-
+            clearTimeout(introTimeout);
             const introGif = `${effects.intro}?${new Date().getTime()}`;
             const idleGif = effects.idle;
-
-            card.style.setProperty('--background-image', 'none'); // Reset background
-
+            card.style.setProperty('--background-image', 'none');
             setTimeout(() => {
             card.style.setProperty('--background-image', `url("${introGif}")`);
-
             introTimeout = setTimeout(() => {
             card.style.setProperty('--background-image', `url("${idleGif}")`);
-            }, 4500); // Change to idle after 4.5 seconds
+            }, 4500);
             }, 10);
             });
-
             card.addEventListener('mouseleave', () => {
-            clearTimeout(introTimeout); // Stop the intro effect
+            clearTimeout(introTimeout);
             card.style.setProperty('--background-image', `url("${effects.idle}")`);
             });
             });
             }
-            // Ensure hover effects are applied on page load
             document.addEventListener('DOMContentLoaded', attachHoverEffects);
-
-            // Reapply hover effects when dynamically updating cards
             function updateCards() {
             attachHoverEffects();
             }
@@ -272,7 +246,6 @@
                 <img src="data:image/png;base64,@(Convert.ToBase64String(book.CoverImage))"
                 alt="Cover Image" class="book-cover" />
             }
-            <!-- Age Limit Badge -->
             @{
                 int ageLimit;
                 if (int.TryParse(book.AgeLimit, out ageLimit) && ageLimit > 0)
@@ -301,7 +274,6 @@
                     <p>@book.Author.Substring(0, 18)...</p>
                 }
 
-                <!-- Indicate Borrowed or Bought, or Show Price if Neither -->
                 @if (!string.IsNullOrEmpty(book.RemainingBorrowTime))
                 {
                     <p style="font-weight: bold; color: #ffc107;">Borrowed</p>
@@ -312,7 +284,6 @@
                 }
                 else
                 {
-                    <!-- Display Price/Discount Information -->
                     @if (book.DiscountPrice > 0 && book.DiscountEndDate >= DateTime.Now)
                     {
                         <p class="book-price">
@@ -336,7 +307,6 @@
             </div>
 
         </div>
-        <!-- Modal for Book Details -->
         <div class="modal fade" id="bookModal-@book.BookId" tabindex="-1" aria-labelledby="bookModalLabel-@book.BookId" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -346,7 +316,6 @@
                     </div>
 
                     <div class="modal-body">
-                        <!-- Book Details Section -->
                         <div class="book-details">
                             <div>
                                 <p><strong>Author:</strong> @book.Author</p>
@@ -382,7 +351,6 @@
 
                                 }
 
-                                <!-- Discounted Price Logic -->
                                 @if (book.DiscountPrice > 0 && book.DiscountEndDate >= DateTime.Now)
                                 {
                                     <p class="book-price">
@@ -403,12 +371,10 @@
                                 }
                             </div>
 
-                            <!-- Buttons Section -->
                             <div class="modal-buttons" id="button-container-@book.BookId">
                                 @if (book.IsOwnedByCurrentUser)
                                 {
                                     <p class="text-success"><strong>You own this book!</strong></p>
-                                    <!-- Inside the modal where the download button is located -->
                                     <form method="post" asp-controller="Books" asp-action="DownloadBook">
                                         <input type="hidden" name="bookId" value="@book.BookId" />
                                         <div class="form-group">
@@ -442,6 +408,8 @@
                                         <button class="btn btn-warning btn-sm join-waiting-list-button" data-book-id="@book.BookId">
                                             Join Waiting List
                                         </button>
+                                        <button type="button" class="btn btn-primary buy-now-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Buy Now</button>
+                                        <button class="btn btn-primary add-to-cart-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Add to Cart</button>
                                     }
                                     else
                                     {
@@ -450,8 +418,11 @@
                                         <button class="btn btn-danger btn-sm leave-waiting-list-button" data-book-id="@book.BookId">
                                             Leave Waiting List
                                         </button>
+                                        <button type="button" class="btn btn-primary buy-now-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Buy Now</button>
+                                        <button class="btn btn-primary add-to-cart-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Add to Cart</button>
                                     }
                                 }
+
 
 
                                 else if (book.IsAlreadyBorrowed)
@@ -459,7 +430,6 @@
                                     <p class="text-success"><strong>Borrowed:</strong> <span id="remaining-time-@book.BookId">@book.RemainingBorrowTime</span></p>
                                     <button class="btn btn-danger return-button" data-transaction-id="@book.BorrowTransactionId" data-book-id="@book.BookId">Return Book</button>
                                     <button type="button" class="btn btn-primary buy-now-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Buy Now</button>
-                                    <!-- Inside the modal where the download button is located -->
                                     <form method="post" asp-controller="Books" asp-action="DownloadBook">
                                         <input type="hidden" name="bookId" value="@book.BookId" />
                                         <div class="form-group">
@@ -485,7 +455,7 @@
                                         @if (User.Identity.IsAuthenticated)
                                         {
                                             <button type="button" class="btn btn-primary borrow-now-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BorrowPrice">Borrow Now</button>
-                                            <button class="btn btn-primary add-borrow-to-cart-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BorrowPrice">Add Borrow to Cart</button>
+                                            <button class="btn btn-primary add-borrow-to-cart-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-borrow-price="@book.BorrowPrice">Add Borrow to Cart</button>
                                         }
                                         else
                                         {
@@ -515,36 +485,29 @@
                                     {
                                         <button type="button" class="btn btn-primary buy-now-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Buy Now</button>
                                         <button class="btn btn-primary add-to-cart-button" data-book-id="@book.BookId" data-book-title="@book.Title" data-book-price="@book.BuyPrice">Add to Cart</button>
-                                        <button class="btn btn-warning remove-from-cart-button mt-2" data-book-id="@book.BookId">Remove from Cart</button>
                                     }
                                     else
                                     {
                                         <button type="button" class="btn btn-primary" onclick="alert('Please log in to buy this book.');">Buy Now</button>
                                     }                                    
-                                    <!--<button class="btn btn-danger clear-cart-button mt-2">Clear Cart</button>-->
                                 }
 
-                               <!-- Feedback Section -->
                                 <hr />
                                 <h5>Book Feedback</h5>
 
-                                <!-- Show existing comments/ratings from all users for this book -->
                                 @if (book.Feedbacks != null && book.Feedbacks.Count > 0)
                                 {
                                     <div id="feedback-container-@book.BookId">
                                         @foreach (var feedback in book.Feedbacks)
                                         {
                                             <div class="existing-feedback mb-2">
-                                                <!-- Each feedback might show X stars in display mode -->
                                                 <div class="display-rating">
                                                     @for (int i = 1; i <= 5; i++)
                                                     {
                                                         <span style="color:@(i <= feedback.Rating ? "gold" : "gray");">&#9733;</span>
                                                     }
                                                 </div>
-                                                <!-- Display comment -->
                                                 <p class="mt-1 mb-0"><em>@feedback.Comment</em></p>
-                                                <!-- If you want to show who posted it (first name, last name) and date: -->
                                                 <small>@feedback.FirstName @feedback.LastName on @feedback.Date.ToShortDateString()</small>
                                                 <hr />
                                             </div>
@@ -583,7 +546,6 @@
                                         You must borrow or buy this book to leave feedback.
                                     </p>
                                 }
-                                <!-- Show average rating -->
                                 @if (book.AverageRating > 0)
                                 {
                                     <div id="average-rating-@book.BookId" class="average-rating mb-3">
@@ -604,19 +566,14 @@
 
 
                             </div>
-
-                           
-
                         </div>
 
-                       <!-- Book Image Section -->
                        @if (book.CoverImage != null)
                         {
                             <div class="book-image-container position-relative" id="modalBookContainer-@book.BookId">
                                 <img src="data:image/png;base64,@(Convert.ToBase64String(book.CoverImage))"
                                      alt="Book Cover Image" class="img-fluid" />
                                 <div class="effect-overlay"></div>
-                                <!-- Age Limit Badge -->
                                 @{
                                     if (int.TryParse(book.AgeLimit, out ageLimit) && ageLimit > 0)
                                     {
@@ -628,7 +585,6 @@
                             </div>
                         }
 
-                        <!-- Script for GIF Effects -->
                         <script>
                             document.addEventListener('DOMContentLoaded', () => {
                                 const modal = document.getElementById('bookModal-@book.BookId');

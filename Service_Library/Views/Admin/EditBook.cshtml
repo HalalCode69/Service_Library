@@ -116,7 +116,6 @@
             <p>Current File: @Model.Title.@Model.Format.ToLower()</p>
         }
     </div>
-    <!-- Current Cover Image Preview -->
     <div class="form-group">
         <label>Current Cover Image</label>
         <div>
@@ -131,12 +130,10 @@
             }
         </div>
     </div>
-    <!-- Upload New Cover Image -->
     <div class="form-group">
         <label for="CoverImage">Upload New Cover Image</label>
         <input type="file" class="form-control-file" id="CoverImage" name="CoverImage" accept="image/*" onchange="previewImage(event)" />
     </div>
-    <!-- New Cover Image Preview -->
     <div class="form-group">
         <label>Preview New Cover Image</label>
         <img id="newCoverPreview" src="#" alt="New Cover Preview" class="img-thumbnail" style="display: none; width: 200px; height: auto;" />
@@ -144,7 +141,6 @@
     <button type="submit" class="btn btn-primary">Save Changes</button>
 </form>
 
-<!-- JavaScript to Preview New Image and Validate File Format -->
 <script>
         function updateSelectedGenres() {
             const selectedGenres = Array.from(document.querySelectorAll('input[name="genreCheckbox"]:checked')).map(checkbox => checkbox.value);
@@ -185,7 +181,7 @@
             const fileExtension = file.name.split('.').pop().toLowerCase();
             if (!allowedFormats.includes(fileExtension)) {
                 alert(`Invalid file format (${fileExtension}). Please upload a file in one of the following formats: ${allowedFormats.join(', ')}.`);
-                fileInput.value = ''; // Clear the file input
+                fileInput.value = '';
             }
         }
     }
@@ -231,7 +227,7 @@
 </script>
 <style>
     .genre-button {
-        margin-top: 10px; /* Adds space above the button */
+        margin-top: 10px;
     }
 
     .genres-grid {

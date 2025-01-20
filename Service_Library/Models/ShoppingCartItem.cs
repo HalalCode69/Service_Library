@@ -10,11 +10,11 @@ namespace Service_Library.Models
         public int BookId { get; set; }
         public string Title { get; set; }
         public decimal Price { get; set; }
-        public decimal? DiscountPrice { get; set; } // Discounted price (optional)
-        public DateTime? DiscountEndDate { get; set; } // Discount expiration date
+        public decimal? DiscountPrice { get; set; }
+        public DateTime? DiscountEndDate { get; set; }
         public Book Book { get; set; }
         public int Quantity { get; set; }
         [Required]
-        public string ItemType { get; set; } // New property to distinguish between borrow and buy
+        public string ItemType { get; set; }
     }
 }

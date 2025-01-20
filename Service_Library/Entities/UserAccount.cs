@@ -25,6 +25,6 @@ namespace Service_Library.Entities
         [Required(ErrorMessage = "Password is required")]
         [MaxLength(100, ErrorMessage = "Max 100 Characters allowed.")]
         public string Password { get; set; }
-        public string Role { get; set; } = "User"; // Default role
+        public string Role { get; set; } = "User";
     }
 }

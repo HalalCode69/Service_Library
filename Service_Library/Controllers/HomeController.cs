@@ -10,13 +10,13 @@ namespace Service_Library.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly AppDbContext _context; // Add DbContext
+        private readonly AppDbContext _context;
         private readonly EmailService _emailService;
 
         public HomeController(ILogger<HomeController> logger, AppDbContext context, EmailService emailService)
         {
             _logger = logger;
-            _context = context; // Inject DbContext
+            _context = context;
             _emailService = emailService;
         }
 
@@ -33,14 +33,14 @@ namespace Service_Library.Controllers
 
         public IActionResult GetWebsiteIcon()
         {
-            var icon = _context.WebsiteIcons.FirstOrDefault(); // Fetch the first icon from the table
+            var icon = _context.WebsiteIcons.FirstOrDefault();
 
             if (icon != null)
             {
-                return File(icon.IconData, icon.ContentType); // Return the image as a file response
+                return File(icon.IconData, icon.ContentType);
             }
 
-            return NotFound(); // Return 404 if no icon exists
+            return NotFound();
         }
         [HttpGet("trigger-reminder-emails")]
         public async Task<IActionResult> TriggerReminderEmails([FromServices] ReminderService reminderService)
@@ -64,7 +64,7 @@ namespace Service_Library.Controllers
         {
             try
             {
-                string recipient = "israelnewdj@gmail.com"; // Replace with your test email address
+                string recipient = "israelnewdj@gmail.com";
                 string subject = "Test Email";
                 string body = "<h1>This is a test email</h1><p>Testing SMTP integration.</p>";
 

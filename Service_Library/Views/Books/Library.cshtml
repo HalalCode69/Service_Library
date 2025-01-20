@@ -1,12 +1,9 @@
 ﻿@model IEnumerable<Service_Library.Models.Book>
 
-<!-- Page Header -->
 <h1 class="mb-4 library-header">My Library</h1>
-<!-- Filter Button -->
 <div class="position-relative mb-3">
     <button class="btn btn-primary" id="filterToggle">Filter</button>
     <div id="filterPanel" class="p-3 bg-light border rounded position-absolute top-100 w-100 shadow">
-        <!-- Categories Dropdown -->
         <div class="mb-3">
             <label for="categoryDropdown" class="form-label">Category</label>
             <select id="categoryDropdown" class="form-select">
@@ -18,7 +15,6 @@
                 }
             </select>
         </div>
-        <!-- Genres Dropdown -->
         <div class="mb-3">
             <label for="genreDropdown" class="form-label">Genres</label>
             <select id="genreDropdown" class="form-select" multiple>
@@ -31,7 +27,6 @@
             </select>
         </div>
 
-        <!-- Authors Dropdown -->
         <div class="mb-3">
             <label for="authorDropdown" class="form-label">Author</label>
             <select id="authorDropdown" class="form-select">
@@ -44,7 +39,6 @@
             </select>
         </div>
 
-        <!-- Sort By Dropdown -->
         <div class="mb3">
             <label for="sortDropdown" class="form-label">Sort By</label>
             <select id="sortDropdown" class="form-select">
@@ -64,7 +58,6 @@
             </select>
         </div>
 
-        <!-- Buying/Borrowing Dropdown -->
         <div class="mb-3">
             <label for="buyBorrowDropdown" class="form-label">Availability</label>
             <select id="buyBorrowDropdown" class="form-select">
@@ -74,7 +67,6 @@
             </select>
         </div>
 
-        <!-- Price Range -->
         <div class="mb-3">
             <label for="priceRange" class="form-label">Price Range</label>
             <div id="priceRangeSlider"></div>
@@ -86,13 +78,11 @@
             </div>
         </div>
 
-        <!-- Discounted Books Checkbox -->
         <div class="mb-3 form-check">
             <input type="checkbox" class="form-check-input" id="onSaleCheckbox" @(ViewContext.HttpContext.Request.Query["onSale"] == "true" ? "checked" : "")>
             <label class="form-check-label" for="onSaleCheckbox">Show Only Discounted Books</label>
         </div>
 
-        <!-- Apply Filter Button -->
         <div class="text-end">
             <button class="btn btn-success" onclick="applyFilters()">Apply</button>
         </div>
@@ -102,20 +92,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.css" rel="stylesheet">
 
-
-
-
-<!-- Library Book Container -->
 <div class="book-container">
     @foreach (var book in Model)
     {
         <script>
-            // Function to attach hover effects to all book cards
             function attachHoverEffects() {
                 const cards = document.querySelectorAll('.book-card');
 
                 cards.forEach((card) => {
-                    const category = card.getAttribute('data-category'); // Get category
+                    const category = card.getAttribute('data-category');
                     const categoryEffects = {
                         "Graphic Novels": {
                             intro: "https://cdn.discordapp.com/assets/profile_effects/effects/2024-02-28/ki-detonate/intro.png",
@@ -194,38 +179,32 @@
                     const effects = categoryEffects[category] || categoryEffects["Default"];
                     let introTimeout;
 
-                    // Remove any existing event listeners to avoid duplication
                     card.onmouseenter = null;
                     card.onmouseleave = null;
 
-                    // Add hover event listeners
                     card.addEventListener('mouseenter', () => {
-                        clearTimeout(introTimeout); // Clear previous timeout
+                        clearTimeout(introTimeout);
 
                         const introGif = `${effects.intro}?${new Date().getTime()}`;
                         const idleGif = effects.idle;
 
-                        card.style.setProperty('--background-image', 'none'); // Reset background
-
+                        card.style.setProperty('--background-image', 'none');
                         setTimeout(() => {
                             card.style.setProperty('--background-image', `url("${introGif}")`);
 
                             introTimeout = setTimeout(() => {
                                 card.style.setProperty('--background-image', `url("${idleGif}")`);
-                            }, 4500); // Change to idle after 4.5 seconds
+                            }, 4500);
                         }, 10);
                     });
 
                     card.addEventListener('mouseleave', () => {
-                        clearTimeout(introTimeout); // Stop the intro effect
+                        clearTimeout(introTimeout);
                         card.style.setProperty('--background-image', `url("${effects.idle}")`);
                     });
                 });
             }
-            // Ensure hover effects are applied on page load
             document.addEventListener('DOMContentLoaded', attachHoverEffects);
-
-            // Reapply hover effects when dynamically updating cards
             function updateCards() {
                 attachHoverEffects();
             }
@@ -236,7 +215,6 @@
                 <img src="data:image/png;base64,@(Convert.ToBase64String(book.CoverImage))"
                      alt="Cover Image" class="book-cover" />
             }
-            <!-- Age Limit Badge -->
             @{
                 int ageLimit;
                 if (int.TryParse(book.AgeLimit, out ageLimit) && ageLimit > 0)
@@ -246,7 +224,6 @@
                     </div>
                 }
             }
-            <!-- Book Info -->
             <div class="book-info">
                 @if (!string.IsNullOrEmpty(book.Title) && book.Title.Length <= 18)
                 {
@@ -275,9 +252,6 @@
                     }
                 </p>
 
-
-
-                <!-- Borrow Time Remaining -->
                 @if (!string.IsNullOrEmpty(book.RemainingBorrowTime))
                 {
                     <p class="text-danger">Borrow Time Remaining: @book.RemainingBorrowTime</p>
@@ -288,7 +262,6 @@
                     </button>
                 }
 
-                <!-- Purchased Info -->
                 @if (string.IsNullOrEmpty(book.RemainingBorrowTime))
                 {
                     <p class="text-success">Purchased: This book is yours forever!</p>
@@ -296,7 +269,6 @@
             </div>
         </div>
 
-        <!-- Modal for Book Details -->
         <div class="modal fade" id="bookModal-@book.BookId" tabindex="-1" aria-labelledby="bookModalLabel-@book.BookId" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -305,7 +277,6 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Book Details Section -->
                         <div class="book-details">
                             <p><strong>Author:</strong> @book.Author</p>
                             <p><strong>Publisher:</strong> @book.Publisher</p>
@@ -321,7 +292,6 @@
                                 @string.Join(", ", genreNames)
                             }
                             </p>
-                            <!-- Inside the modal where the download button is located -->
                             <form method="post" asp-controller="Books" asp-action="DownloadBook">
                                 <input type="hidden" name="bookId" value="@book.BookId" />
                                 <div class="form-group">
@@ -344,7 +314,7 @@
                                     Return Book
                                 </button>
                             }
-                            else// Only show delete option for purchased books
+                            else
                             {
                                 <button class="btn btn-danger delete-button" data-book-id="@book.BookId">
                                     Delete from Library
@@ -354,26 +324,21 @@
 
                             
                             <div class="modal-buttons" id="button-container-@book.BookId">
-                            <!-- Feedback Section -->
                                 <hr />
                                 <h5>Book Feedback</h5>
 
-                                <!-- Show existing comments/ratings from all users for this book -->
                                 @if (book.Feedbacks != null && book.Feedbacks.Count > 0)
                                 {
                                     foreach (var feedback in book.Feedbacks)
                                     {
                                         <div class="existing-feedback mb-2">
-                                            <!-- Each feedback might show X stars in display mode -->
                                             <div class="display-rating">
                                                 @for (int i = 1; i <= 5; i++)
                                                 {
                                                     <span style="color:@(i <= feedback.Rating ? "gold" : "gray");">&#9733;</span>
                                                 }
                                             </div>
-                                            <!-- Display comment -->
                                             <p class="mt-1 mb-0"><em>@feedback.Comment</em></p>
-                                            <!-- If you want to show who posted it (first name, last name) and date: -->
                                             <small>@feedback.FirstName @feedback.LastName on @feedback.Date.ToShortDateString()</small>
                                             <hr />
                                         </div>
@@ -400,7 +365,6 @@
                                         Submit Feedback
                                     </button>
                                 </div>
-                                <!-- Show average rating -->
                                 @if (book.AverageRating > 0)
                                 {
                                     <div class="average-rating mb-3">
@@ -424,14 +388,12 @@
 
 
                         </div>
-                        <!-- Book Image Section -->
                        @if (book.CoverImage != null)
                         {
                             <div class="book-image-container position-relative" id="modalBookContainer-@book.BookId">
                                 <img src="data:image/png;base64,@(Convert.ToBase64String(book.CoverImage))"
                                      alt="Book Cover Image" class="img-fluid" />
                                 <div class="effect-overlay"></div>
-                                <!-- Age Limit Badge -->
                                 @{
                                     if (int.TryParse(book.AgeLimit, out ageLimit) && ageLimit > 0)
                                     {
@@ -443,7 +405,6 @@
                             </div>
                         }
 
-                        <!-- Script for GIF Effects -->
                         <script>
                             document.addEventListener('DOMContentLoaded', () => {
                                 const modal = document.getElementById('bookModal-@book.BookId');
@@ -564,13 +525,12 @@
     }
 </div>
 
-<!-- Script to Filter Library -->
 <script>
     function filterByCategory(category) {
         const url = new URL(window.location.href);
-        url.searchParams.set('categoryFilter', decodeURIComponent(category)); // Update or add the `categoryFilter` query parameter
-        url.searchParams.delete('search'); // Optional: Clear the search query when changing the category
-        window.location.href = url.toString(); // Redirect to the updated URL
+        url.searchParams.set('categoryFilter', decodeURIComponent(category));
+        url.searchParams.delete('search');
+        window.location.href = url.toString();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -594,7 +554,7 @@
                     .then(data => {
                         if (data.success) {
                             alert(data.message);
-                            location.reload(); // Reload the page to refresh the library
+                            location.reload();
                         } else {
                             alert(data.message);
                         }

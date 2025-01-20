@@ -1,45 +1,42 @@
-﻿/* Apply the background gradient to html and body */
-html, body {
+﻿html, body {
     transition: background-color 0.3s ease, color 0.3s ease;
     margin: 0;
     padding: 0;
-    min-height: 100vh; /* Ensures both html and body expand to at least the viewport height */
-    background: linear-gradient(-45deg, #ffb3ba 0%, /* Pastel red */
-    #ffdfba 12%, /* Pastel orange */
-    #ffffba 25%, /* Pastel yellow */
-    #bae1ff 37%, /* Pastel light blue */
-    #a4c3d2 50%, /* Pastel blue */
-    #d4a4c3 62%, /* Pastel pink */
-    #c7f0db 75%, /* Pastel mint green */
-    #f7d1ba 87%, /* Pastel peach */
-    #e2e1f7 100% /* Pastel lavender */
+    min-height: 100vh;
+    background: linear-gradient(-45deg, #ffb3ba 0%,
+    #ffdfba 12%,
+    #ffffba 25%,
+    #bae1ff 37%,
+    #a4c3d2 50%,
+    #d4a4c3 62%,
+    #c7f0db 75%,
+    #f7d1ba 87%,
+    #e2e1f7 100%
     );
     background-size: 800% 800%;
     animation: gradient 40s ease infinite;
-    background-attachment: fixed; /* Keeps the gradient fixed while scrolling */
+    background-attachment: fixed;
 }
 
-/* Dark mode background gradient */
 html.dark-mode, body.dark-mode {
     margin: 0;
     padding: 0;
-    min-height: 100vh; /* Ensures both html and body expand to at least the viewport height */
-    background: linear-gradient(-45deg, #2c3e50 0%, /* Dark blue */
-    #4b79a1 12%, /* Darker blue */
-    #283048 25%, /* Dark gray */
-    #1e3c72 37%, /* Dark blue */
-    #2a5298 50%, /* Darker blue */
-    #1c2833 62%, /* Dark gray */
-    #34495e 75%, /* Dark blue */
-    #2c3e50 87%, /* Dark blue */
-    #1c2833 100% /* Dark gray */
+    min-height: 100vh;
+    background: linear-gradient(-45deg, #2c3e50 0%,
+    #4b79a1 12%,
+    #283048 25%,
+    #1e3c72 37%,
+    #2a5298 50%,
+    #1c2833 62%,
+    #34495e 75%,
+    #2c3e50 87%,
+    #1c2833 100%
     );
     background-size: 800% 800%;
     animation: gradient 40s ease infinite;
-    background-attachment: fixed; /* Keeps the gradient fixed while scrolling */
+    background-attachment: fixed;
 }
 
-/* Keyframes for animated gradient */
 @keyframes gradient {
     0% {
         background-position: 0% 50%;
@@ -53,8 +50,6 @@ html.dark-mode, body.dark-mode {
         background-position: 0% 50%;
     }
 }
-
-/* Dark mode styles */
 body.dark-mode {
     background-color: #121212;
     color: #ffffff;
@@ -133,9 +128,9 @@ body.dark-mode {
 }
 
 body.dark-mode .book-info {
-    background: none; /* Remove background color in dark mode */
+    background: none;
 }
-/* Container for the toggle */
+
 .toggle-container {
     display: flex;
     align-items: center;
@@ -145,12 +140,10 @@ body.dark-mode .book-info {
     height: 30px;
 }
 
-/* Hide the checkbox */
 .toggle-checkbox {
     display: none;
 }
 
-/* Toggle background */
 .toggle {
     position: relative;
     width: 100%;
@@ -161,7 +154,6 @@ body.dark-mode .book-info {
     transition: background-color 0.3s ease;
 }
 
-/* Icons for Sun and Moon */
 .toggle-icons {
     position: absolute;
     width: 100%;
@@ -183,7 +175,6 @@ body.dark-mode .book-info {
     color: #ecf0f1;
 }
 
-/* Slider (the toggle button itself) */
 .toggle-slider {
     position: absolute;
     width: 28px;
@@ -196,12 +187,11 @@ body.dark-mode .book-info {
     transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
-/* When checked, change background and slider position */
 .toggle-checkbox:checked + .toggle {
     background-color: #333;
 }
 
 .toggle-checkbox:checked + .toggle .toggle-slider {
-    transform: translateX(30px); /* Move the slider to the right */
-    background-color: #ffcc00; /* Change the slider color for dark mode */
+    transform: translateX(30px);
+    background-color: #ffcc00;
 }

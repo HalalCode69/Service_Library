@@ -39,7 +39,6 @@ namespace Service_Library.Services
 
                 await _emailService.SendEmailAsync(transaction.User.Email, subject, body);
 
-                // Mark reminder as sent
                 transaction.ReminderSent = true;
             }
             await _context.SaveChangesAsync();

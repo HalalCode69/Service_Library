@@ -18,20 +18,18 @@
         'text-info': 'text-info-dark-mode',
         'navbar-nav': 'navbar-nav-dark-mode',
         'btn': 'btn-dark-mode',
-        'table': 'table-dark-mode', // Added for shopping cart table
-        'cart-summary': 'cart-summary-dark-mode', // Added for cart summary
-        'countdown-timer': 'countdown-timer-dark-mode' // Added for countdown timer
+        'table': 'table-dark-mode',
+        'cart-summary': 'cart-summary-dark-mode',
+        'countdown-timer': 'countdown-timer-dark-mode'
     };
-
-    // Apply Dark Mode
     function applyDarkMode() {
         body.classList.add('dark-mode');
         navbar.classList.add('navbar-dark-mode');
 
         if (filterPanel) {
-            filterPanel.classList.remove('bg-light'); // Remove light mode background
-            filterPanel.classList.add('bg-dark'); // Add dark mode background
-            filterPanel.classList.add('dark-mode'); // Additional dark mode class for styling
+            filterPanel.classList.remove('bg-light');
+            filterPanel.classList.add('bg-dark');
+            filterPanel.classList.add('dark-mode');
         }
 
         for (const [originalClass, darkModeClass] of Object.entries(classMappings)) {
@@ -40,16 +38,14 @@
             });
         }
     }
-
-    // Remove Dark Mode
     function removeDarkMode() {
         body.classList.remove('dark-mode');
         navbar.classList.remove('navbar-dark-mode');
 
         if (filterPanel) {
-            filterPanel.classList.remove('bg-dark'); // Remove dark mode background
-            filterPanel.classList.add('bg-light'); // Restore light mode background
-            filterPanel.classList.remove('dark-mode'); // Remove dark mode class
+            filterPanel.classList.remove('bg-dark');
+            filterPanel.classList.add('bg-light');
+            filterPanel.classList.remove('dark-mode');
         }
 
         for (const [originalClass, darkModeClass] of Object.entries(classMappings)) {
@@ -59,7 +55,6 @@
         }
     }
 
-    // Initialize Dark Mode Based on Local Storage
     if (localStorage.getItem('darkMode') === 'enabled') {
         applyDarkMode();
         if (darkModeSwitch) {

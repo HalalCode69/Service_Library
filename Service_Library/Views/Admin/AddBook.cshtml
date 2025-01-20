@@ -103,7 +103,6 @@
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
 
-<!-- JavaScript to Preview New Image and Validate File Format -->
 <script>
     function updateSelectedGenres() {
         const selectedGenres = Array.from(document.querySelectorAll('input[name="genreCheckbox"]:checked')).map(checkbox => checkbox.value);
@@ -143,7 +142,7 @@
             const fileExtension = file.name.split('.').pop().toLowerCase();
             if (!allowedFormats.includes(fileExtension)) {
                 alert(`Invalid file format (${fileExtension}). Please upload a file in one of the following formats: ${allowedFormats.join(', ')}.`);
-                fileInput.value = ''; // Clear the file input
+                fileInput.value = '';
             }
         }
     }
@@ -195,7 +194,7 @@
 </script>
 <style>
     .genre-button {
-        margin-top: 10px; /* Adds space above the button */
+        margin-top: 10px;
     }
 
     .genres-grid {

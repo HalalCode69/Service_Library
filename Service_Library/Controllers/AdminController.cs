@@ -149,35 +149,30 @@ namespace Service_Library.Controllers
 
             if (ModelState.IsValid)
             {
-                // Handle cover image upload
                 if (CoverImage != null && CoverImage.Length > 0)
                 {
                     using (var ms = new MemoryStream())
                     {
                         CoverImage.CopyTo(ms);
-                        model.CoverImage = ms.ToArray(); // Convert the file to byte array
+                        model.CoverImage = ms.ToArray();
                     }
                 }
 
-                // Handle book content upload
                 if (BookContent != null && BookContent.Length > 0)
                 {
                     using (var ms = new MemoryStream())
                     {
                         BookContent.CopyTo(ms);
-                        model.BookContent = ms.ToArray(); // Convert the file to byte array
+                        model.BookContent = ms.ToArray();
                     }
                 }
-                // Add selected genres to the book
                 model.Genres = selectedGenres.Select(g => new Genre { Name = g }).ToList();
 
-                // Save the book in the database
                 _context.Books.Add(model);
                 _context.SaveChanges();
                 return RedirectToAction("ManageBooks");
             }
 
-            // Repopulate categories if validation fails
             ViewBag.Categories = new List<string>
             {
                 "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
@@ -290,7 +285,6 @@ namespace Service_Library.Controllers
         [HttpPost]
         public IActionResult EditBook([Bind("BookId,Title,Author,Publisher,Format,BorrowPrice,BuyPrice,AvailableCopies,IsBorrowable,Category,AgeLimit,YearOfPublishing,DiscountPrice,DiscountEndDate")] Book model, IFormFile? CoverImage, IFormFile? BookContent, string selectedGenres)
         {
-            // Always populate ViewBag.Categories
             ViewBag.Categories = new List<string>
             {
                 "Adventure", "Adventure Travel", "Afrofuturism", "Alternative Medicine", "Animation",
@@ -338,10 +332,8 @@ namespace Service_Library.Controllers
                 "World Cultures", "Zoology"
             };
 
-            // Check ModelState validity
             if (!ModelState.IsValid)
             {
-                // Log the errors for debugging
                 foreach (var modelStateKey in ModelState.Keys)
                 {
                     var value = ModelState[modelStateKey];
@@ -351,7 +343,6 @@ namespace Service_Library.Controllers
                     }
                 }
 
-                // Return view with validation errors displayed
                 return View(model);
             }
 
@@ -361,14 +352,12 @@ namespace Service_Library.Controllers
                 return NotFound();
             }
 
-            // Validation: Borrow price must be less than buy price
             if (model.BorrowPrice >= model.BuyPrice)
             {
                 ModelState.AddModelError("", "Borrow price must be lower than the buy price.");
                 return View(model);
             }
 
-            // Update basic book properties
             existingBook.Title = model.Title;
             existingBook.Author = model.Author;
             existingBook.Publisher = model.Publisher;
@@ -379,7 +368,6 @@ namespace Service_Library.Controllers
             existingBook.IsBorrowable = model.IsBorrowable;
             existingBook.Category = model.Category;
 
-            // Update Cover Image if a new one is provided
             if (CoverImage != null && CoverImage.Length > 0)
             {
                 using (var ms = new MemoryStream())
@@ -389,17 +377,15 @@ namespace Service_Library.Controllers
                 }
             }
 
-            // Update Book Content if a new one is provided
             if (BookContent != null && BookContent.Length > 0)
             {
                 using (var ms = new MemoryStream())
                 {
                     BookContent.CopyTo(ms);
-                    existingBook.BookContent = ms.ToArray(); // Convert the file to byte array
+                    existingBook.BookContent = ms.ToArray();
                 }
             }
 
-            // Update genres
             existingBook.Genres.Clear();
             if (!string.IsNullOrEmpty(selectedGenres))
             {
@@ -419,7 +405,6 @@ namespace Service_Library.Controllers
             }
             else
             {
-                // If no genres are selected, default to the category
                 var categoryGenre = _context.Genres.FirstOrDefault(g => g.Name == model.Category);
                 if (categoryGenre != null)
                 {
@@ -431,15 +416,13 @@ namespace Service_Library.Controllers
                 }
             }
 
-            // Handle Discount Logic
             if (model.DiscountPrice.HasValue && model.DiscountEndDate.HasValue)
             {
                 if (model.DiscountEndDate <= DateTime.Now.AddDays(7))
                 {
-                    // Apply the discount
                     existingBook.DiscountPrice = model.DiscountPrice;
                     existingBook.DiscountEndDate = model.DiscountEndDate;
-                    existingBook.PreviousBuyPrice = existingBook.BuyPrice; // Save the original price
+                    existingBook.PreviousBuyPrice = existingBook.BuyPrice;
                 }
                 else
                 {
@@ -449,7 +432,6 @@ namespace Service_Library.Controllers
             }
             else
             {
-                // Reset discount fields if no discount is applied
                 existingBook.DiscountPrice = null;
                 existingBook.DiscountEndDate = null;
                 existingBook.PreviousBuyPrice = null;
@@ -493,7 +475,6 @@ namespace Service_Library.Controllers
                         ContentType = iconFile.ContentType
                     };
 
-                    // Remove old icon if it exists
                     var oldIcon = _context.WebsiteIcons.FirstOrDefault();
                     if (oldIcon != null)
                     {
@@ -505,7 +486,7 @@ namespace Service_Library.Controllers
                 }
             }
 
-            return RedirectToAction("Index"); // Or another action
+            return RedirectToAction("Index");
         }
         public IActionResult GetIcon()
         {
@@ -515,7 +496,7 @@ namespace Service_Library.Controllers
                 return File(icon.IconData, icon.ContentType);
             }
 
-            return NotFound(); // Or return a default placeholder image
+            return NotFound();
         }
 
     }

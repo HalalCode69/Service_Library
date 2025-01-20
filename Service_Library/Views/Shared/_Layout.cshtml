@@ -2,20 +2,19 @@
 <html lang="en">
 <head>
     <script>
-        // Apply dark mode class as early as possible
         if (localStorage.getItem('darkMode') === 'enabled') {
         document.documentElement.classList.add('dark-mode');
         }
     </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EbookLib</title> <!-- Set the tab name here -->
-    <link rel="icon" href="@Url.Action("GetFavicon", "Home")" type="image/x-icon" /> <!-- Link to the favicon action -->
+    <title>EbookLib</title>
+    <link rel="icon" href="@Url.Action("GetFavicon", "Home")" type="image/x-icon" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Service_Library.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/styles.css" /> <!-- Link to the CSS file -->
-    <link rel="stylesheet" href="~/css/darkmode.css" /> <!-- Link to the dark mode CSS file -->
+    <link rel="stylesheet" href="~/css/styles.css" />
+    <link rel="stylesheet" href="~/css/darkmode.css" />
 </head>
 <body>
     <header>
@@ -26,7 +25,6 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-brand">
-                    <!-- Wrap the image in an anchor tag -->
                     <a href="@Url.Action("Index", "Home")">
                         <img src="@Url.Action("GetWebsiteIcon", "Home")"
                         alt="Website Icon"
@@ -35,7 +33,6 @@
                 </div>
 
                 <div class="navbar-collapse collapse justify-content-between">
-                    <!-- Left side: Navigation links -->
                     <ul class="navbar-nav">
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Books" asp-action="Index">Books</a>
@@ -61,21 +58,16 @@
                     </ul>
 
                     <form method="get" asp-controller="Books" asp-action="@ViewContext.RouteData.Values["action"]" class="d-flex position-relative search-container">
-                        <!-- Search Input -->
                         <input type="text" id="searchBox" name="search" class="form-control me-2"
                                placeholder="Search by title, author, or publisher..."
                                value="@ViewContext.HttpContext.Request.Query["search"]" autocomplete="off" />
 
-                        <!-- Hidden Input for Category Filter -->
                         <input type="hidden" name="categoryFilter" value="@ViewContext.HttpContext.Request.Query["categoryFilter"]" />
 
-                        <!-- Search Button -->
                         <button type="submit" class="btn btn-primary">Search</button>
                     </form>
 
-                    <!-- Right side: User actions -->
                     <div class="d-flex align-items-center">
-                        <!-- Light/Dark Mode Switch -->
                         <div class="toggle-container me-3">
                             <input type="checkbox" id="darkModeSwitch" class="toggle-checkbox">
                             <label for="darkModeSwitch" class="toggle">
@@ -104,7 +96,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/darkmode.js"></script> <!-- Link to the dark mode JS file -->
+    <script src="~/js/darkmode.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
