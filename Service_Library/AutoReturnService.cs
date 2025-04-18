@@ -78,7 +78,6 @@ public class AutoReturnService
                 .OrderBy(wl => wl.AddedDate)
                 .Take(3)
                 .ToList();
-
             foreach (var entry in waitingListEntries)
             {
                 var reservation = new BookReservation

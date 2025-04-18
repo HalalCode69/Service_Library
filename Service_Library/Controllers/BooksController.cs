@@ -348,10 +348,6 @@ namespace Service_Library.Controllers
         }
 
 
-
-
-
-
         public class JoinWaitingListRequest
         {
             public int BookId { get; set; }

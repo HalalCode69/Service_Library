@@ -26,5 +26,8 @@ namespace Service_Library.Entities
         [MaxLength(100, ErrorMessage = "Max 100 Characters allowed.")]
         public string Password { get; set; }
         public string Role { get; set; } = "User";
+
+        public string? PasswordResetToken { get; set; }
+        public DateTime? PasswordResetTokenExpiry { get; set; }
     }
 }
