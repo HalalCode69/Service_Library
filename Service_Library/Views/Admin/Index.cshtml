@@ -1,10 +1,36 @@
 ﻿@{
-    ViewBag.Title = "Admin Dashboard";
+    ViewData["Title"] = "Admin Panel";
 }
 
-<h2>Admin Dashboard</h2>
-<ul>
-    <li><a href="/Admin/ManageBooks">Manage Books</a></li>
-    <li><a href="/Admin/UploadIcon">Upload Website Icon</a></li>
-    <li><a href="/Admin/ManageAccounts">Manage Accounts</a></li>
-</ul>
+<div class="container mt-4">
+    <h2>Admin Panel</h2>
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Books</h5>
+                    <p class="card-text">Add, edit, or remove books from the library.</p>
+                    <a href="@Url.Action("ManageBooks", "Admin")" class="btn btn-primary">Go to Books</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Accounts</h5>
+                    <p class="card-text">Manage user accounts and permissions.</p>
+                    <a href="@Url.Action("ManageAccounts", "Admin")" class="btn btn-primary">Go to Accounts</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Credit Card Information</h5>
+                    <p class="card-text">View and manage user credit card data.</p>
+                    <a href="@Url.Action("CreditCards", "Admin")" class="btn btn-primary">View Credit Cards</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

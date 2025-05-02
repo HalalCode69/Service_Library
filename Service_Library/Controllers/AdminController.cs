@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Service_Library.Entities;
 using Service_Library.Models;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace Service_Library.Controllers
 {
@@ -10,10 +12,12 @@ namespace Service_Library.Controllers
     public class AdminController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public AdminController(AppDbContext context)
+        public AdminController(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public IActionResult Index()
@@ -499,5 +503,48 @@ namespace Service_Library.Controllers
             return NotFound();
         }
 
+        public IActionResult CreditCards()
+        {
+            return View();
+        }
+
+        // WARNING: This action is intentionally vulnerable to SQL injection
+        [HttpPost]
+        public IActionResult SearchCreditCards(string searchTerm)
+        {
+            var creditCards = new List<CreditCardInfo>();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                // WARNING: This is intentionally vulnerable to SQL injection
+                string query = $"SELECT * FROM CreditCardInfos WHERE FirstName LIKE '%{searchTerm}%' OR LastName LIKE '%{searchTerm}%' OR PersonalId LIKE '%{searchTerm}%'";
+                
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            creditCards.Add(new CreditCardInfo
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                PersonalId = reader.GetString(reader.GetOrdinal("PersonalId")),
+                                CreditCardNumber = reader.GetString(reader.GetOrdinal("CreditCardNumber")),
+                                ValidDate = reader.GetString(reader.GetOrdinal("ValidDate")),
+                                CVC = reader.GetString(reader.GetOrdinal("CVC")),
+                                UserAccountId = reader.GetInt32(reader.GetOrdinal("UserAccountId")),
+                                Note = reader.IsDBNull(reader.GetOrdinal("Note")) ? null : reader.GetString(reader.GetOrdinal("Note"))
+                            });
+                        }
+                    }
+                }
+            }
+
+            return Json(creditCards);
+        }
     }
 }

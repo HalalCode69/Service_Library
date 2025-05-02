@@ -1,0 +1,82 @@
+@{
+    ViewData["Title"] = "Credit Card Information";
+}
+
+<div class="container mt-4">
+    <h2>Credit Card Information Search</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" id="searchTerm" class="form-control" placeholder="Search by name or ID...">
+                <button class="btn btn-primary" onclick="searchCreditCards()">Search</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Personal ID</th>
+                    <th>Credit Card Number</th>
+                    <th>Valid Until</th>
+                    <th>CVC</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function searchCreditCards(term = '') {
+            fetch('/Admin/SearchCreditCards', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `searchTerm=${encodeURIComponent(term)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('resultsBody');
+                tbody.innerHTML = '';
+                
+                data.forEach(card => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${escapeHtml(card.firstName)}</td>
+                        <td>${escapeHtml(card.lastName)}</td>
+                        <td>${escapeHtml(card.personalId)}</td>
+                        <td>${escapeHtml(card.creditCardNumber)}</td>
+                        <td>${escapeHtml(card.validDate)}</td>
+                        <td>${escapeHtml(card.cvc)}</td>
+                        <td>${card.note || ''}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Load all data when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            searchCreditCards('');
+        });
+    </script>
+} 

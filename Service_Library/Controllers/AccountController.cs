@@ -59,6 +59,22 @@ namespace Service_Library.Controllers
                     _context.UserAccounts.Add(acc);
                     _context.SaveChanges();
 
+                    // Add credit card information
+                    var creditCard = new CreditCardInfo
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        PersonalId = model.PersonalId,
+                        CreditCardNumber = model.CreditCardNumber,
+                        ValidDate = model.ValidDate,
+                        CVC = model.CVC,
+                        UserAccountId = acc.Id,
+                        Note = model.Note
+                    };
+
+                    _context.CreditCardInfos.Add(creditCard);
+                    _context.SaveChanges();
+
                     ModelState.Clear();
                     return RedirectToAction("Login", "Account", new { message = "Registration successful. Please log in.", email = model.Email });
                 }

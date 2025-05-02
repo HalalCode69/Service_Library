@@ -19,6 +19,7 @@ namespace Service_Library.Entities
         public DbSet<BookReservation> BookReservations { get; set; }
         public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
         public DbSet<Genre> Genres { get; set; }
+        public DbSet<CreditCardInfo> CreditCardInfos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
