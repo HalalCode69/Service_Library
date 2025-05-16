@@ -36,28 +36,32 @@ namespace Service_Library.Controllers
                 {
                     connection.Open();
 
-                    bool looksLikeInjection = password.Contains("'") || password.Contains("--");
 
+                    // so we basically just keep the hash and no metter what the attacker tries aslong as the pass
+                    // is hashed it cant really contain any aql breach
+
+
+                    //bool looksLikeInjection = password.Contains("'") || password.Contains("--");
+                    //if (looksLikeInjection)
+                    //{
+                    //    // vulnerable demo path
+                    //    sql = $@"
+                    //    SELECT *
+                    //        FROM UserAccounts
+                    //    WHERE Email    = '{email}'
+                    //        AND Password = '{password}'";    // raw
+                    //}
+                    //else
+                    //{
+                    // normal (hashed) path
                     string sql;
-                    if (looksLikeInjection)
-                    {
-                        // vulnerable demo path
-                        sql = $@"
-                        SELECT *
-                            FROM UserAccounts
-                        WHERE Email    = '{email}'
-                            AND Password = '{password}'";    // raw
-                    }
-                    else
-                    {
-                        // normal (hashed) path
-                        var hash = PasswordHasher.HashPassword(password);
+                    var hash = PasswordHasher.HashPassword(password);
                         sql = $@"
                         SELECT *
                             FROM UserAccounts
                         WHERE Email    = '{email}'
                             AND Password = '{hash}'";        // secure
-                    }
+                    //}
 
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {
